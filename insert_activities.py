@@ -17,7 +17,7 @@ db = Database(**secrets['db'])
 
 # Fetch Strava activities
 last_epoch = db.last_activity_timestamp
-raw_activities = strava.activities(after=last_epoch)
+raw_activities = strava.activities(**({'after': last_epoch} if last_epoch is not None else {}))
 if len(raw_activities) == 0:
     print('No activity to be fetched')
 else:
