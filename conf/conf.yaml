@@ -1,0 +1,18 @@
+columns:
+  id:                   id
+  start_date:           start_datetime_utc
+  type:                 type
+  name:                 name
+  distance:             distance
+  total_elevation_gain: total_elevation_gain
+  moving_time:          moving_time
+  elapsed_time:         elapsed_time
+  average_speed:        average_speed
+  max_speed:            max_speed
+  elev_high:            elev_high
+  elev_low:             elev_low
+  average_cadence:      average_cadence
+  average_heartrate:    average_heartrate
+  average_temp:         average_temp
+  average_watts:        average_watts
+  map.summary_polyline: polyline
