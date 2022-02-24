@@ -2,7 +2,7 @@ CREATE SCHEMA strava;
 
 CREATE TABLE strava.activities (
   id                    BIGINT          NOT NULL  UNIQUE,
-  start_date_utc        TIMESTAMP       NOT NULL,
+  start_datetime_utc    TIMESTAMP       NOT NULL,
   type                  VARCHAR(32)     NOT NULL,
   name                  VARCHAR(256)    NOT NULL,
   distance              FLOAT           NOT NULL,
