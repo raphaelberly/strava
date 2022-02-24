@@ -2,7 +2,6 @@ import logging
 from datetime import timezone
 from os import path
 
-import pandas as pd
 import psycopg2
 
 LOGGER = logging.getLogger(__name__)
@@ -27,14 +26,6 @@ class Database(object):
         with psycopg2.connect(**self._credentials) as conn:
             dt_utc, = self._execute(f'SELECT max(start_datetime_utc) FROM {self.schema}.activities', conn).fetchone()
         return dt_utc.replace(tzinfo=timezone.utc).timestamp()
-
-    def run_query(self, query: str) -> pd.DataFrame:
-        with psycopg2.connect(**self._credentials) as conn:
-            cur = self._execute(query, conn)
-            return pd.DataFrame(cur.fetchall(), columns=[desc[0] for desc in cur.description]).infer_objects()
-
-    def table(self, table_name: str) -> pd.DataFrame:
-        return self.run_query(f'SELECT * FROM {self.schema}.{table_name}')
 
     def insert(self, table_name: str, **kwargs):
         query = "INSERT INTO {schema}.{table} ({columns}) VALUES ('{values}');".format(
