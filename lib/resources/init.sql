@@ -15,7 +15,25 @@ CREATE TABLE strava.activities (
   elev_low              FLOAT           NOT NULL,
   average_cadence       FLOAT,
   average_heartrate     FLOAT,
+  max_heartrate         FLOAT,
   average_temp          FLOAT,
   average_watts         FLOAT,
   polyline              VARCHAR(16384)  NOT NULL
+);
+
+CREATE VIEW strava.activities_curated AS (
+  SELECT
+    id,
+    type,
+    name,
+    DATE(a.start_datetime_utc)  AS start_date,
+    a.distance / 1000           AS distance_km,
+    a.moving_time               AS moving_time_s,
+    a.elapsed_time              AS elapsed_time_s,
+    a.total_elevation_gain      AS elevatin_gain_m,
+    a.average_speed * 3.6       AS speed_kph,
+    a.average_cadence           AS cadence_rpm,
+    a.average_heartrate         AS heartrate_bpm,
+    a.max_heartrate             AS max_heartrate_bpm
+  FROM strava.activities a
 );
