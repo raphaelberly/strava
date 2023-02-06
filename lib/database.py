@@ -33,7 +33,7 @@ class Database(object):
             schema=self.schema,
             table=table_name,
             columns=', '.join(list(kwargs.keys())),
-            values="', '".join(list(map(str, kwargs.values())))
+            values="','".join((str(val).replace("'", "''") for val in kwargs.values()))
         )
         with psycopg2.connect(**self._credentials) as conn:
             self._execute(query, conn)
