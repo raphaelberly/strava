@@ -27,7 +27,7 @@ else:
 i = 0
 for raw_activity in raw_activities:
     activity = {}
-    for column_path, column_name in conf['columns'].items():
+    for column_name, column_path in conf['columns'].items():
         # Dive into nested dictionary following the provided path
         value = raw_activity
         for key in column_path.split('.'):
