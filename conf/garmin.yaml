@@ -1,0 +1,47 @@
+activity:
+  id:                     activityId
+  start_datetime_utc:     startTimeGMT
+  distance:               distance
+  moving_time:            movingDuration
+  elapsed_time:           elapsedDuration
+  elevation_gain:         elevationGain
+  elevation_loss:         elevationLoss
+  average_speed:          averageSpeed
+  max_speed:              maxSpeed
+  max_vertical_speed:     maxVerticalSpeed
+  elev_high:              minElevation
+  elev_low:               maxElevation
+  average_cadence:        averageRunningCadenceInStepsPerMinute
+  average_heartrate:      averageHR
+  max_heartrate:          maxHR
+  average_power:          avgPower
+  max_power:              maxPower
+  calories:               calories
+  stride_length:          avgStrideLength
+  vertical_oscillation:   avgVerticalOscillation
+  vertical_ratio:         avgVerticalRatio
+  ground_contact_balance: avgGroundContactBalance
+  vo2_max:                vO2MaxValue
+
+lap:
+  lap_index:              lapIndex
+  distance:               distance
+  moving_time:            movingDuration
+  elapsed_time:           elapsedDuration
+  elevation_gain:         elevationLoss
+  elevation_loss:         elevationLoss
+  average_speed:          averageSpeed
+  max_speed:              maxSpeed
+  max_vertical_speed:     maxVerticalSpeed
+  elev_high:              maxElevation
+  elev_low:               minElevation
+  average_cadence:        averageRunCadence
+  average_heartrate:      averageHR
+  max_heartrate:          maxHR
+  average_power:          averagePower
+  max_power:              maxPower
+  calories:               calories
+  stride_length:          strideLength
+  vertical_oscillation:   verticalOscillation
+  vertical_ratio:         verticalRatio
+  ground_contact_balance: groundContactBalanceLeft

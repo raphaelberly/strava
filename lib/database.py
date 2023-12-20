@@ -34,6 +34,6 @@ class Database(object):
             table=table_name,
             columns=', '.join(list(kwargs.keys())),
             values="','".join((str(val).replace("'", "''") for val in kwargs.values()))
-        )
+        ).replace("'None'", "NULL")
         with psycopg2.connect(**self._credentials) as conn:
             self._execute(query, conn)
