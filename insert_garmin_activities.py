@@ -25,7 +25,11 @@ activities = garmin.get_activities_by_date('2023-10-25', target_date)
 for activity in activities:
     if 'running' in activity['activityType']['typeKey']:
         # Insert activity
-        db.insert('activity', **{k: activity.get(v) for k, v in conf['activity'].items()})
+        db.insert(
+            'activity',
+            type=activity['activityType']['typeKey'],
+            **{k: activity.get(v) for k, v in conf['activity'].items()}
+        )
         i += 1
         # Insert laps
         laps = garmin.get_activity_splits(activity['activityId'])['lapDTOs']

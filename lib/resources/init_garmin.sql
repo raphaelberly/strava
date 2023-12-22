@@ -1,8 +1,9 @@
 CREATE SCHEMA garmin;
 
 CREATE TABLE garmin.activity (
-  id                      BIGINT    NOT NULL  UNIQUE,
-  start_datetime_utc      TIMESTAMP NOT NULL,
+  id                      BIGINT        NOT NULL  UNIQUE,
+  type                    VARCHAR(128)  NOT NULL,
+  start_datetime_utc      TIMESTAMP     NOT NULL,
   distance                FLOAT,
   moving_time             FLOAT,
   elapsed_time            FLOAT,
