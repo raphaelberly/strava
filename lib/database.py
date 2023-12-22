@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from os import path
 from typing import Optional
 
+import pandas as pd
 import psycopg2
 
 LOGGER = logging.getLogger(__name__)
@@ -21,6 +22,11 @@ class Database(object):
         LOGGER.debug(query)
         cur.execute(query)
         return cur
+
+    def run_query(self, query: str) -> pd.DataFrame:
+        with psycopg2.connect(**self._credentials) as conn:
+            cur = self._execute(query, conn)
+            return pd.DataFrame(cur.fetchall(), columns=[desc[0] for desc in cur.description]).infer_objects()
 
     @property
     def last_activity_timestamp(self) -> Optional[datetime]:
