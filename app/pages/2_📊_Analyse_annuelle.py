@@ -54,7 +54,7 @@ metric_options = {
 left, right = st.columns(spec=(1, 2))
 
 with left:
-    base = st.selectbox('Base', options=metric_options.keys())
+    base = st.selectbox('Base', options=metric_options.keys(), index=1)
     base = metric_options[base]
 
 with right:
@@ -81,10 +81,12 @@ st.header('Totaux cumulés par année')
 left, right, _ = st.columns(spec=(1, 1, 1))
 
 with left:
-    sport = st.selectbox('Sport', options=set(NAMES.values()))
+    sports_ordered = df_year[df_year['Type'] != 'Autre'].groupby('Type')['moving_time'].sum()\
+        .sort_values(ascending=False).index
+    sport = st.selectbox('Sport', options=sports_ordered)
 
 with right:
-    metric = st.selectbox('Métrique', options=metric_options.keys())
+    metric = st.selectbox('Métrique', options=metric_options.keys(), index=1)
     metric = metric_options[metric]
 
 df_sport = df[df["Type"] == sport]

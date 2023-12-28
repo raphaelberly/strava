@@ -7,6 +7,4 @@ NAMES = {
     'BackcountrySki': 'Ski de randonnée',
     'Workout': 'Renfo',
     'WeightTraining': 'Renfo',
-    'Walk': 'Marche',
-    'RockClimbing': 'Escalade',
 }
