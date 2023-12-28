@@ -4,8 +4,8 @@ import streamlit as st
 
 # First streamlit command
 st.set_page_config(
-    page_title="Accountin",
-    page_icon="💸",
+    page_title="Health & Sports",
+    page_icon="📈",
 )
 # Make sure the user is logged in
 # username = authenticate()
