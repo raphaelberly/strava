@@ -2,50 +2,14 @@ import datetime
 
 import pandas as pd
 import streamlit as st
+from yaml import safe_load
 
 from utils import db
 
 
 YEAR = 2024
 MONTH = datetime.date.today().month
-OBJECTIVES = {
-    'run': {
-        'title': 'Course à pied',
-        'emoji': '🏃🏼‍♂️',
-        'obj': 1200,
-        'obj_type': 'dist',
-    },
-    'ride': {
-        'title': 'Vélo de route',
-        'emoji': '🚴🏼‍♂️',
-        'obj': 5000,
-        'obj_type': 'dist',
-    },
-    'workout|weight': {
-        'title': 'Renfo',
-        'emoji': '💪🏻️',
-        'obj': 40,
-        'obj_type': 'count',
-    },
-    'backcountry': {
-        'title': 'Ski de rando',
-        'emoji': '⛷️',
-        'obj': 5,
-        'obj_type': 'count',
-    },
-    'alpine': {
-        'title': 'Ski alpin',
-        'emoji': '🚠️',
-        'obj': 3,
-        'obj_type': 'count',
-    },
-    'snowboard': {
-        'title': 'Snowboard',
-        'emoji': '🏂',
-        'obj': 1,
-        'obj_type': 'count',
-    },
-}
+OBJECTIVES = safe_load(open('conf/objectives.yaml'))
 
 df = db.run_query(f"SELECT * FROM strava.activities")
 df_year = df[df.start_datetime_utc.dt.year == YEAR]

@@ -1,0 +1,30 @@
+run:
+  title: Course à pied
+  emoji: '🏃🏼‍♂️'
+  obj: 1200
+  obj_type: dist
+ride:
+  title: Vélo de route
+  emoji: '🚴🏼‍♂️'
+  obj: 5000
+  obj_type: dist
+workout|weight:
+  title: Renfo
+  emoji: '💪🏻️'
+  obj: 40
+  obj_type: count
+backcountry:
+  title: Ski de rando
+  emoji: '⛷️'
+  obj: 5
+  obj_type: count
+alpine:
+  title: Ski alpin
+  emoji: '🚠️'
+  obj: 2
+  obj_type: count
+snowboard:
+  title: Snowboard
+  emoji: '🏂'
+  obj: 1
+  obj_type: count
