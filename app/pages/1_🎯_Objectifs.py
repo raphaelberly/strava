@@ -58,9 +58,6 @@ with left:
 with right:
     objective('ride', **OBJECTIVES['ride'])
 
-tmp = df_year[(df_year.type.str.lower().str.contains('run') | df_year.type.str.lower().str.contains('ride'))] \
-    .sort_values('start_datetime_utc', ascending=False)
-
 st.subheader('Dernières activités')
 
 if 'nb_activities' not in st.session_state:
@@ -73,6 +70,9 @@ def switch_df_size():
     else:
         st.session_state.nb_activities = 20
 
+
+tmp = df_year[(df_year.type.str.lower().str.contains('run') | df_year.type.str.lower().str.contains('ride'))] \
+    .sort_values('start_datetime_utc', ascending=False)
 
 st.dataframe(
     data=pd.DataFrame({

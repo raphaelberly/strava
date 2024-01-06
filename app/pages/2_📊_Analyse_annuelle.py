@@ -1,4 +1,4 @@
-import datetime
+from datetime import date, timedelta
 
 import streamlit as st
 import plotly.express as px
@@ -10,7 +10,7 @@ st.title('Analyse annuelle')
 
 st.header('Statistiques')
 
-YEAR = st.selectbox('Année', options=[2023, 2022, 2021])
+YEAR = st.selectbox('Année', options=[2024, 2023, 2022, 2021])
 
 df = db.run_query(f"SELECT * FROM strava.activities WHERE date_part('year', start_datetime_utc) >= 2021")
 df['moving_time'] = (df['moving_time'] / 3600).round(2)
@@ -21,6 +21,8 @@ df['Type'] = df.type.map(NAMES).fillna('Autre')
 
 df_year = df[df.start_datetime_utc.dt.year == YEAR]
 df_year_prev = df[df.start_datetime_utc.dt.year == YEAR - 1]
+if YEAR == date.today().year:
+    df_year_prev = df_year_prev[df_year_prev.start_datetime_utc.dt.date <= date.today() - timedelta(days=365)]
 
 left, left_center, right_center, right = st.columns(4)
 
@@ -86,7 +88,7 @@ with left:
     sport = st.selectbox('Sport', options=sports_ordered)
 
 with right:
-    metric = st.selectbox('Métrique', options=metric_options.keys(), index=1)
+    metric = st.selectbox('Métrique', options=metric_options.keys(), index=2)
     metric = metric_options[metric]
 
 df_sport = df[df["Type"] == sport]
