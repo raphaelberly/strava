@@ -9,6 +9,7 @@ from utils import db
 
 YEAR = 2024
 MONTH = datetime.date.today().month
+DOY = datetime.datetime.now().timetuple().tm_yday
 OBJECTIVES = safe_load(open('conf/objectives.yaml'))
 
 df = db.run_query(f"SELECT * FROM strava.activities")
@@ -16,7 +17,7 @@ df_year = df[df.start_datetime_utc.dt.year == YEAR]
 df_month = df_year[df_year.start_datetime_utc.dt.month == MONTH]
 
 
-def _display_objective(title: str, obj: str, current_total: str, current_progress: float):
+def _display_objective(title: str, obj: str, current_total: str, current_progress: float, delta: str = None):
     st.subheader(title)
     st.progress(
         value=min(current_progress, 1.0),
@@ -24,7 +25,11 @@ def _display_objective(title: str, obj: str, current_total: str, current_progres
     )
     sub_left, sub_right = st.columns(2)
     with sub_left:
-        st.metric('Total actuel', current_total)
+        if delta:
+            delta_color = 'inverse' if 'behind' in delta else 'normal'
+            st.metric('Total actuel', current_total, delta=delta, delta_color=delta_color)
+        else:
+            st.metric('Total actuel', current_total)
     with sub_right:
         st.metric('Complétion', f'{current_progress * 100:.1f} %')
 
@@ -39,11 +44,13 @@ def objective(key, title, emoji, obj, obj_type):
         else:
             raise NotImplementedError('Only "dist" and "count" are supported as objective_type so far')
 
+    _delta = (total_year / obj - DOY / 365) * obj if obj_type == 'dist' else None
     _display_objective(
         title=" ".join([emoji, title]),
         obj=f'{obj} {"km" if obj_type == "dist" else "sessions"}',
         current_total=f'{total_year:.0f} {"km" if obj_type == "dist" else ""}',
         current_progress=total_year / obj,
+        delta=f"{abs(_delta):.0f} km {'behind' if _delta < 0 else 'ahead'}" if _delta else None,
     )
 
 
