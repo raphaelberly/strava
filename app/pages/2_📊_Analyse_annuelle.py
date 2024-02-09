@@ -96,6 +96,13 @@ df_sport['Année'] = df_sport['start_datetime_utc'].dt.year.astype(str)
 df_sport['Semaine'] = df_sport['start_datetime_utc'].dt.isocalendar().week
 
 df_sport_agg = df_sport.groupby(['Année', 'Semaine'])[metric].sum().reset_index(drop=False).sort_values('Semaine')
-df_sport_agg['Somme cumulée'] = df_sport_agg.groupby('Année')[metric].cumsum()
+df_sport_agg['Somme cumulée'] = (df_sport_agg.groupby('Année')[metric].cumsum() * 10).round() / 10
 
-st.line_chart(df_sport_agg, x='Semaine', y='Somme cumulée', color='Année')
+fig = px.line(df_sport_agg, x='Semaine', y='Somme cumulée', color='Année')
+fig.update_traces(hovertemplate=None)
+fig.update_layout(
+    hovermode="x unified",
+    xaxis_title=None,
+    yaxis_title=None,
+)
+st.plotly_chart(fig, use_container_width=True)
