@@ -16,4 +16,6 @@ columns:
   max_heartrate:          max_heartrate
   average_temp:           average_temp
   average_watts:          average_watts
+  relative_effort:        suffer_score
+  ftp_base:               ftp_base
   polyline:               map.summary_polyline

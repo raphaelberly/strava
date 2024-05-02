@@ -18,7 +18,9 @@ CREATE TABLE strava.activities (
   max_heartrate         FLOAT,
   average_temp          FLOAT,
   average_watts         FLOAT,
-  polyline              VARCHAR(16384)  NOT NULL
+  relative_effort       FLOAT,
+  ftp_base              INT,
+  polyline              VARCHAR(16384)
 );
 
 CREATE VIEW strava.activities_curated AS (
@@ -34,6 +36,9 @@ CREATE VIEW strava.activities_curated AS (
     a.average_speed * 3.6       AS speed_kph,
     a.average_cadence           AS cadence_rpm,
     a.average_heartrate         AS heartrate_bpm,
-    a.max_heartrate             AS max_heartrate_bpm
+    a.max_heartrate             AS max_heartrate_bpm,
+    a.average_watts             AS average_power_w,
+    a.ftp_base                  AS ftp_base_w,
+    a.relative_effort           AS relative_effort
   FROM strava.activities a
 );

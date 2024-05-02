@@ -8,6 +8,7 @@ class Strava(object):
 
     auth_url = "https://www.strava.com/oauth/token"
     activities_url = "https://www.strava.com/api/v3/athlete/activities"
+    activity_url = "https://www.strava.com/api/v3/activities/{activity_id}"
 
     def __init__(self, credentials):
         self._credentials = credentials
@@ -32,3 +33,7 @@ class Strava(object):
         if before:
             param['before'] = before
         return requests.get(self.activities_url, headers=header, params=param).json()
+
+    def activity(self, activity_id):
+        header = {'Authorization': f'Bearer {self._access_token}'}
+        return requests.get(self.activity_url.format(activity_id=activity_id), headers=header).json()
