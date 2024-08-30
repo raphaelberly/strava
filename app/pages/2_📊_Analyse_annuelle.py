@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import datetime, date, timedelta
 
 import streamlit as st
 import plotly.express as px
@@ -8,21 +8,38 @@ from utils.names import NAMES
 
 st.title('Analyse annuelle')
 
-st.header('Statistiques')
-
-YEAR = st.selectbox('Année', options=[2024, 2023, 2022, 2021])
-
 df = db.run_query(f"SELECT * FROM strava.activities WHERE date_part('year', start_datetime_utc) >= 2021")
 df['moving_time'] = (df['moving_time'] / 3600).round(2)
 df['distance'] = (df['distance'] / 1000).round(2)
 df['nb_activities'] = 1
 df['Type'] = df.type.map(NAMES).fillna('Autre')
 
+metric_options = {
+    "Nombre d'activités": 'nb_activities',
+    "Temps d'activité": 'moving_time',
+    "Distance": 'distance',
+    "Distance verticale": 'total_elevation_gain',
+}
+
+years_ordered = sorted(range(2021, datetime.today().year+1, 1), reverse=True)
+sports_ordered = df[df['Type'] != 'Autre'].groupby('Type')['moving_time'].sum().sort_values(ascending=False).index
+
+st.header('Totaux par année')
+
+left, right = st.columns(2)
+
+with left:
+    YEAR = st.selectbox('Année', options=years_ordered)
+with right:
+    SPORT = st.selectbox('Sport', options=['Tous les sports'] + list(sports_ordered))
 
 df_year = df[df.start_datetime_utc.dt.year == YEAR]
 df_year_prev = df[df.start_datetime_utc.dt.year == YEAR - 1]
 if YEAR == date.today().year:
     df_year_prev = df_year_prev[df_year_prev.start_datetime_utc.dt.date <= date.today() - timedelta(days=365)]
+if SPORT != 'Tous les sports':
+    df_year = df_year[df_year["Type"] == SPORT]
+    df_year_prev = df_year_prev[df_year_prev["Type"] == SPORT]
 
 left, left_center, right_center, right = st.columns(4)
 
@@ -43,55 +60,18 @@ with right:
     total_dplus_prev = df_year_prev['total_elevation_gain'].sum()
     st.metric("Total d+", f"{total_dplus:.0f}m", delta=f"{(total_dplus / total_dplus_prev - 1) * 100:-.1f}%")
 
-
-st.subheader('Répartition par sport')
-
-metric_options = {
-    "Nombre d'activités": 'nb_activities',
-    "Temps d'activité": 'moving_time',
-    "Distance": 'distance',
-    "Distance verticale": 'total_elevation_gain',
-}
-
-left, right = st.columns(spec=(1, 2))
-
-with left:
-    base = st.selectbox('Base', options=metric_options.keys(), index=1)
-    base = metric_options[base]
-
-with right:
-
-    fig1 = px.pie(
-        data_frame=df_year,
-        values=base,
-        names='Type',
-        hole=0.5,
-        height=350,
-    )
-    fig1.update_layout(
-        showlegend=False,
-        margin=dict(l=0, t=0, r=0, b=120),
-    )
-    fig1.update_traces(
-        hovertemplate=None,
-        textinfo='label+percent'
-    )
-    st.plotly_chart(fig1, theme="streamlit", use_container_width=True)
-
-st.header('Totaux cumulés par année')
+st.header('Cumuls par année')
 
 left, right, _ = st.columns(spec=(1, 1, 1))
 
 with left:
-    sports_ordered = df_year[df_year['Type'] != 'Autre'].groupby('Type')['moving_time'].sum()\
-        .sort_values(ascending=False).index
-    sport = st.selectbox('Sport', options=sports_ordered)
+    SPORT_CUMUL = st.selectbox('Sport', options=sports_ordered)
 
 with right:
     metric = st.selectbox('Métrique', options=metric_options.keys(), index=2)
     metric = metric_options[metric]
 
-df_sport = df[df["Type"] == sport]
+df_sport = df[df["Type"] == SPORT_CUMUL]
 df_sport['Année'] = df_sport['start_datetime_utc'].dt.year.astype(str)
 df_sport['Semaine'] = df_sport['start_datetime_utc'].dt.isocalendar().week
 
