@@ -24,14 +24,16 @@ metric_options = {
 years_ordered = sorted(range(2021, datetime.today().year+1, 1), reverse=True)
 sports_ordered = df[df['Type'] != 'Autre'].groupby('Type')['moving_time'].sum().sort_values(ascending=False).index
 
-st.header('Totaux par année')
+left, _, _ = st.columns(3)
+with left:
+    SPORT = st.selectbox('Sport', options=['Tous les sports'] + list(sports_ordered))
 
-left, right = st.columns(2)
 
+st.header('Bilan par année')
+
+left, _, _ = st.columns(3)
 with left:
     YEAR = st.selectbox('Année', options=years_ordered)
-with right:
-    SPORT = st.selectbox('Sport', options=['Tous les sports'] + list(sports_ordered))
 
 df_year = df[df.start_datetime_utc.dt.year == YEAR]
 df_year_prev = df[df.start_datetime_utc.dt.year == YEAR - 1]
@@ -60,18 +62,17 @@ with right:
     total_dplus_prev = df_year_prev['total_elevation_gain'].sum()
     st.metric("Total d+", f"{total_dplus:.0f}m", delta=f"{(total_dplus / total_dplus_prev - 1) * 100:-.1f}%")
 
-st.header('Cumuls par année')
+st.header('Totaux cumulés')
 
-left, right, _ = st.columns(spec=(1, 1, 1))
-
+left, _, _ = st.columns(3)
 with left:
-    SPORT_CUMUL = st.selectbox('Sport', options=sports_ordered)
-
-with right:
     metric = st.selectbox('Métrique', options=metric_options.keys(), index=2)
     metric = metric_options[metric]
 
-df_sport = df[df["Type"] == SPORT_CUMUL]
+if SPORT != 'Tous les sports':
+    df_sport = df[df["Type"] == SPORT]
+else:
+    df_sport = df
 df_sport['Année'] = df_sport['start_datetime_utc'].dt.year.astype(str)
 df_sport['Semaine'] = df_sport['start_datetime_utc'].dt.isocalendar().week
 
