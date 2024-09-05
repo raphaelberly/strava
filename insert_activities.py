@@ -18,7 +18,7 @@ print('Successfully connected to Strava')
 db = Database(**secrets['db'])
 
 # Fetch Strava activities
-last_epoch = db.last_activity_timestamp
+last_epoch = db.last_activity_timestamp()
 raw_activities = []
 per_page = 200
 page = 1

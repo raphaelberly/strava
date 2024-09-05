@@ -28,10 +28,9 @@ class Database(object):
             cur = self._execute(query, conn)
             return pd.DataFrame(cur.fetchall(), columns=[desc[0] for desc in cur.description]).infer_objects()
 
-    @property
-    def last_activity_timestamp(self) -> Optional[datetime]:
+    def last_activity_timestamp(self, table_name='activities') -> Optional[float]:
         with psycopg2.connect(**self._credentials) as conn:
-            dt_utc, = self._execute(f'SELECT max(start_datetime_utc) FROM {self.schema}.activities', conn).fetchone()
+            dt_utc, = self._execute(f'SELECT max(start_datetime_utc) FROM {self.schema}.{table_name}', conn).fetchone()
         return dt_utc.replace(tzinfo=timezone.utc).timestamp() if dt_utc is not None else None
 
     def insert(self, table_name: str, **kwargs) -> None:

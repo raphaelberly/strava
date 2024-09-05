@@ -1,8 +1,8 @@
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime
 
 import garminconnect
 import yaml
-
+from psycopg2.errors import UniqueViolation
 from lib.database import Database
 
 # Read configuration files
@@ -17,29 +17,32 @@ tokenstore = "~/.garminconnect"
 garmin = garminconnect.Garmin()
 garmin.login(tokenstore)
 
-target_date = (date.today() - timedelta(days=1)).isoformat()
+start_date = date.fromtimestamp(db.last_activity_timestamp(table_name='activity')).isoformat()
 
 # RUNNING
 i, j = 0, 0
-activities = garmin.get_activities_by_date('2023-10-25', target_date)
+activities = garmin.get_activities_by_date(start_date, date.today().isoformat())
 for activity in activities:
     if 'running' in activity['activityType']['typeKey']:
-        # Insert activity
-        db.insert(
-            'activity',
-            type=activity['activityType']['typeKey'],
-            **{k: activity.get(v) for k, v in conf['activity'].items()}
-        )
-        i += 1
-        # Insert laps
-        laps = garmin.get_activity_splits(activity['activityId'])['lapDTOs']
-        for lap in laps:
+        try:
+            # Insert activity
             db.insert(
-                'lap',
-                activity_id=activity['activityId'],
-                activity_start_datetime_utc=activity['startTimeGMT'],
-                ** {k: lap.get(v) for k, v in conf['lap'].items()}
+                'activity',
+                type=activity['activityType']['typeKey'],
+                **{k: activity.get(v) for k, v in conf['activity'].items()}
             )
-            j += 1
+            i += 1
+            # Insert laps
+            laps = garmin.get_activity_splits(activity['activityId'])['lapDTOs']
+            for lap in laps:
+                db.insert(
+                    'lap',
+                    activity_id=activity['activityId'],
+                    activity_start_datetime_utc=activity['startTimeGMT'],
+                    ** {k: lap.get(v) for k, v in conf['lap'].items()}
+                )
+                j += 1
+        except UniqueViolation:
+            break
 
 print(f'Inserted {i} activities and {j} laps to database')
