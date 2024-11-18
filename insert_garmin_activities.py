@@ -15,16 +15,15 @@ secrets['db']['schema'] = 'garmin'
 # Configure database connector
 db = Database(**secrets['db'])
 
-tokenstore = "~/.garminconnect"
 garmin = garminconnect.Garmin()
-garmin.login(tokenstore)
+garmin.login(secrets['garmin']['token_store'])
 
 start_date = date.fromtimestamp(db.last_activity_timestamp(table_name='activity')).isoformat()
 
 # RUNNING
 i, j = 0, 0
 activities = garmin.get_activities_by_date(start_date, date.today().isoformat())
-for activity in tqdm(activities):
+for activity in tqdm(reversed(activities), total=len(activities)):  # Read from oldest to new
     if 'running' in activity['activityType']['typeKey']:
         try:
             # Insert activity
@@ -44,6 +43,6 @@ for activity in tqdm(activities):
                 )
                 j += 1
         except UniqueViolation:
-            break
+            continue
 
 print(f'Inserted {i} activities and {j} laps to database')
