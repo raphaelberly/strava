@@ -6,3 +6,4 @@ streamlit
 garminconnect
 tabulate
 plotly
+sshtunnel
