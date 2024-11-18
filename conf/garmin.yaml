@@ -21,6 +21,7 @@ activity:
   vertical_oscillation:   avgVerticalOscillation
   vertical_ratio:         avgVerticalRatio
   ground_contact_balance: avgGroundContactBalance
+  ground_contact_time:    avgGroundContactTime
   vo2_max:                vO2MaxValue
 
 lap:
@@ -45,3 +46,4 @@ lap:
   vertical_oscillation:   verticalOscillation
   vertical_ratio:         verticalRatio
   ground_contact_balance: groundContactBalanceLeft
+  ground_contact_time:    groundContactTime

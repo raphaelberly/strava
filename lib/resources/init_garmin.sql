@@ -24,6 +24,7 @@ CREATE TABLE garmin.activity (
   vertical_oscillation    FLOAT,
   vertical_ratio          FLOAT,
   ground_contact_balance  FLOAT,
+  ground_contact_time     FLOAT,
   vo2_max                 FLOAT,
   CONSTRAINT "activity_pkey" PRIMARY KEY (id)
 );
@@ -51,6 +52,7 @@ CREATE TABLE garmin.lap (
   vertical_oscillation          FLOAT,
   vertical_ratio                FLOAT,
   ground_contact_balance        FLOAT,
+  ground_contact_time           FLOAT,
   CONSTRAINT "lap_pkey"             PRIMARY KEY (activity_id, lap_index),
   CONSTRAINT "lap_fkey_activity"    FOREIGN KEY (activity_id)    REFERENCES garmin.activity (id)
 );
