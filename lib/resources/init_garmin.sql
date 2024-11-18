@@ -57,12 +57,23 @@ CREATE TABLE garmin.lap (
   CONSTRAINT "lap_fkey_activity"    FOREIGN KEY (activity_id)    REFERENCES garmin.activity (id)
 );
 
+CREATE OR REPLACE VIEW garmin.activity_enriched AS (
+    SELECT
+        g.*,
+        s.name
+    FROM garmin.activity g
+    INNER JOIN strava.activities s
+        ON DATE(g.start_datetime_utc) = DATE(s.start_datetime_utc)
+        AND round(g.distance) = round(s.distance)
+);
+
 CREATE OR REPLACE VIEW garmin.lap_enriched AS (
     SELECT
         a.type                  AS activity_type,
         a.start_datetime_utc    AS activity_start_datetime_utc,
+        a.name                  AS activity_name,
         l.*
     FROM garmin.lap l
-    INNER JOIN garmin.activity a
+    INNER JOIN garmin.activity_enriched a
         ON l.activity_id = a.id
 );
