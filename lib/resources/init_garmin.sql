@@ -31,7 +31,6 @@ CREATE TABLE garmin.activity (
 CREATE TABLE garmin.lap (
   activity_id                   BIGINT    NOT NULL,
   lap_index                     INT       NOT NULL,
-  activity_start_datetime_utc   TIMESTAMP NOT NULL,
   distance                      FLOAT,
   moving_time                   FLOAT,
   elapsed_time                  FLOAT,
@@ -54,4 +53,14 @@ CREATE TABLE garmin.lap (
   ground_contact_balance        FLOAT,
   CONSTRAINT "lap_pkey"             PRIMARY KEY (activity_id, lap_index),
   CONSTRAINT "lap_fkey_activity"    FOREIGN KEY (activity_id)    REFERENCES garmin.activity (id)
+);
+
+CREATE OR REPLACE VIEW garmin.lap_enriched AS (
+    SELECT
+        a.type                  AS activity_type,
+        a.start_datetime_utc    AS activity_start_datetime_utc,
+        l.*
+    FROM garmin.lap l
+    INNER JOIN garmin.activity a
+        ON l.activity_id = a.id
 );

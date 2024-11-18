@@ -1,8 +1,10 @@
-from datetime import date, timedelta, datetime
+from datetime import date
 
 import garminconnect
 import yaml
 from psycopg2.errors import UniqueViolation
+from tqdm import tqdm
+
 from lib.database import Database
 
 # Read configuration files
@@ -22,7 +24,7 @@ start_date = date.fromtimestamp(db.last_activity_timestamp(table_name='activity'
 # RUNNING
 i, j = 0, 0
 activities = garmin.get_activities_by_date(start_date, date.today().isoformat())
-for activity in activities:
+for activity in tqdm(activities):
     if 'running' in activity['activityType']['typeKey']:
         try:
             # Insert activity
@@ -38,7 +40,6 @@ for activity in activities:
                 db.insert(
                     'lap',
                     activity_id=activity['activityId'],
-                    activity_start_datetime_utc=activity['startTimeGMT'],
                     ** {k: lap.get(v) for k, v in conf['lap'].items()}
                 )
                 j += 1

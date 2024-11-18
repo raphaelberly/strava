@@ -7,3 +7,4 @@ garminconnect
 tabulate
 plotly
 sshtunnel
+tqdm
