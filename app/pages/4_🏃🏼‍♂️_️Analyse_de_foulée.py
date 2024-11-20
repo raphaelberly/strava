@@ -16,37 +16,45 @@ def format_pace(seconds_per_km):
     seconds = seconds_per_km % 60
     return f"{int(minutes)}'{int(seconds):02d}/km"
 
-laps = db.run_query('SELECT * FROM garmin.lap_enriched')
-
+laps = db.run_query("SELECT * FROM garmin.lap_enriched WHERE activity_type IN ('running', 'trail_running')")
+laps.rename(columns={'activity_start_datetime_utc': 'activity_date'}, inplace=True)
+laps = laps[laps['moving_time'] >= 20]
+laps['max_pace'] = laps['max_speed'].apply(calculate_pace)
+laps['average_pace'] = laps['average_speed'].apply(calculate_pace)
 
 st.title('Analyse de foulée 🏃🏼‍♂️')
 
-sports_list = [item for item in laps['activity_type'].unique()]
-sports = st.selectbox('Sport', ['Toutes les sorties course à pied'] + sports_list, format_func=normalize_text, index=1)
-if sports != 'Toutes les sorties course à pied':
-    laps = laps[laps['activity_type'] == sports]
+left, center, right = st.columns(3)
 
-years = sorted(list(set(laps['activity_start_datetime_utc'].dt.year)))
-left, center, _ = st.columns(3)
+with left:
+    include_trail_running = st.checkbox('Inclure les sorties trail', value=False)
+with center:
+    filter_out_slow_laps = st.checkbox('Enlever les circuits lents', value=True)
+
+if include_trail_running is False:
+    laps = laps[laps['activity_type'] == 'running']
+if filter_out_slow_laps:
+    laps = laps[laps['average_pace'] <= 7*60]
+
+years = sorted(list(set(laps['activity_date'].dt.year)))
 with left:
     start_year = st.selectbox(label='Année 1', options=years, index=0)
 with center:
     end_years = [y for y in years if y >= start_year]
     end_year = st.selectbox(label='Année N', options=end_years, index=len(end_years)-1)
 
-laps = laps[(laps['activity_start_datetime_utc'].dt.year >= start_year) & laps['activity_start_datetime_utc'].dt.year <= end_year]
+laps = laps[(laps['activity_date'].dt.year >= start_year) & laps['activity_date'].dt.year <= end_year]
 
-laps['max_pace'] = laps['max_speed'].apply(calculate_pace)
-laps['average_pace'] = laps['average_speed'].apply(calculate_pace)
+left, center, right = st.columns(3)
 
 with left:
     x = st.selectbox('X', options=[
-        'max_pace',
         'average_pace',
         'average_cadence',
         'average_heartrate',
+        'activity_date',
+        'max_pace',
         'max_heartrate',
-        'activity_start_datetime_utc',
     ], format_func=normalize_text)
 with center:
     y = st.selectbox('Y', options=[
@@ -57,23 +65,43 @@ with center:
         'ground_contact_balance',
         'ground_contact_time',
     ], format_func=normalize_text)
+with right:
+    c = st.selectbox('Color', options=[
+        '',
+        'average_pace',
+        'average_cadence',
+        'average_heartrate',
+        'activity_date',
+    ], format_func=normalize_text)
 
 # Format the ticks on the x-axis
+trace_marker = {'size': 10, 'opacity': 0.7}
+if c != '':
+    trace_marker.update({
+        'color': laps[c].tolist(),
+        'colorscale': 'Blues',  # https://media.geeksforgeeks.org/wp-content/uploads/20220220154706/newplot.png
+    })
 trace = go.Scatter(
     x=laps[x],
     y=laps[y].round(2),
     mode='markers',
-    hovertemplate=normalize_text(y) + ': <b>%{y}</b><br>Name: %{customdata[0]}<br>Lap: %{customdata[1]}<br>Pace: %{customdata[2]}',
+    marker=trace_marker,
+    hovertemplate=f'{normalize_text(y)} : <b>%{{y}}</b>'
+                  f'<br>Date : %{{customdata[0]}}'
+                  f'<br>Nom : %{{customdata[1]}}'
+                  f'<br>Circuit : %{{customdata[2]}}'
+                  f'<br>Allure : %{{customdata[3]}}',
     customdata=list(zip(
+        laps['activity_date'].dt.strftime('%b %d, %Y').tolist(),
         laps['activity_name'].tolist(),
         laps['lap_index'].tolist(),
         laps['average_pace'].apply(format_pace).tolist(),
-    ))
+    )),
 )
 
 layout=None
 if 'pace' in x:
-    num_ticks = 6
+    num_ticks = 12
     min_pace = round(laps[x].min() / 60) * 60
     max_pace = round(laps[x].max() / 60 + 1) * 60
     tickvals = np.linspace(min_pace, max_pace, num_ticks)
