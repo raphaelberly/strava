@@ -16,6 +16,11 @@ def format_pace(seconds_per_km):
     seconds = seconds_per_km % 60
     return f"{int(minutes)}'{int(seconds):02d}/km"
 
+def format_duration(seconds):
+    minutes = seconds // 60
+    seconds = seconds % 60
+    return f'{f"{int(minutes):02d}min " if int(minutes) > 0 else ""}{int(seconds):02d}s'
+
 laps = db.run_query("SELECT * FROM garmin.lap_enriched WHERE activity_type IN ('running', 'trail_running')")
 laps.rename(columns={'activity_start_datetime_utc': 'activity_date'}, inplace=True)
 laps = laps[laps['moving_time'] >= 20]
@@ -71,7 +76,6 @@ with right:
         'average_pace',
         'average_cadence',
         'average_heartrate',
-        'activity_date',
     ], format_func=normalize_text)
 
 # Format the ticks on the x-axis
@@ -90,12 +94,14 @@ trace = go.Scatter(
                   f'<br>Date : %{{customdata[0]}}'
                   f'<br>Nom : %{{customdata[1]}}'
                   f'<br>Circuit : %{{customdata[2]}}'
-                  f'<br>Allure : %{{customdata[3]}}',
+                  f'<br>Allure : %{{customdata[3]}}'
+                  f'<br>Durée : %{{customdata[4]}}',
     customdata=list(zip(
         laps['activity_date'].dt.strftime('%b %d, %Y').tolist(),
         laps['activity_name'].tolist(),
         laps['lap_index'].tolist(),
         laps['average_pace'].apply(format_pace).tolist(),
+        laps['moving_time'].apply(format_duration).tolist(),
     )),
 )
 
