@@ -44,6 +44,8 @@ for raw_activity in raw_activities:
         ftp_search = re.search(r'base ftp (de )?(\d+) ?w', raw_activity['description'], re.IGNORECASE)
         if ftp_search:
             raw_activity['ftp_base'] = ftp_search.group(2)
+    if raw_activity['type'] in ['AlpineSki', 'Snowboard']:
+        raw_activity['total_elevation_gain'] = 0
     for column_name, column_path in conf['columns'].items():
         # Dive into nested dictionary following the provided path
         value = raw_activity
