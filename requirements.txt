@@ -8,3 +8,4 @@ tabulate
 plotly
 sshtunnel
 tqdm
+git+https://github.com/Wyattjoh/pushover
