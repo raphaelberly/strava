@@ -54,9 +54,15 @@ class Database(object):
             cur = self._execute(query, conn)
             return pd.DataFrame(cur.fetchall(), columns=[desc[0] for desc in cur.description]).infer_objects()
 
-    def last_activity_timestamp(self, table_name='activities') -> Optional[float]:
+    def last_activity_timestamp(self, table_name='activities', offset=0) -> Optional[float]:
         with get_conn(**self._credentials) as conn:
-            dt_utc, = self._execute(f'SELECT max(start_datetime_utc) FROM {self.schema}.{table_name}', conn).fetchone()
+            query = f"""
+                SELECT start_datetime_utc
+                FROM {self.schema}.{table_name}
+                ORDER BY start_datetime_utc DESC
+                LIMIT 1 OFFSET {offset};
+            """
+            dt_utc, = self._execute(query, conn).fetchone()
         return dt_utc.replace(tzinfo=timezone.utc).timestamp() if dt_utc is not None else None
 
     def insert(self, table_name: str, **kwargs) -> None:
@@ -68,3 +74,17 @@ class Database(object):
         ).replace("'None'", "NULL")
         with get_conn(**self._credentials) as conn:
             self._execute(query, conn)
+
+    def upsert(self, table_name: str, constraint_name: str, schema=None, **kwargs):
+        query = "INSERT INTO {schema}.{table} ({columns}) VALUES ('{values}') " \
+                "ON CONFLICT ON CONSTRAINT {constraint} DO UPDATE SET {updates};" \
+            .format(
+                schema=schema or self.schema,
+                table=table_name,
+                constraint=constraint_name,
+                columns=', '.join(list(kwargs.keys())),
+                values="','".join((str(val).replace("'", "''") for val in kwargs.values())),
+                updates=", ".join([f"{k}='{v}'" for k, v in kwargs.items()])
+            ).replace("'None'", "NULL")
+        with get_conn(**self._credentials) as conn:
+            return self._execute(query, conn)

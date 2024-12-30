@@ -1,7 +1,7 @@
 CREATE SCHEMA strava;
 
 CREATE TABLE strava.activities (
-  id                    BIGINT          NOT NULL  UNIQUE,
+  id                    BIGINT          NOT NULL,
   start_datetime_utc    TIMESTAMP       NOT NULL,
   type                  VARCHAR(32)     NOT NULL,
   name                  VARCHAR(256)    NOT NULL,
@@ -20,7 +20,9 @@ CREATE TABLE strava.activities (
   average_watts         FLOAT,
   relative_effort       FLOAT,
   ftp_base              INT,
-  polyline              VARCHAR(16384)
+  polyline              VARCHAR(16384),
+  update_datetime_utc   TIMESTAMP       NOT NULL    DEFAULT (now() AT TIME ZONE 'utc'),
+  CONSTRAINT "activities_pkey"  PRIMARY KEY (id)
 );
 
 CREATE VIEW strava.activities_curated AS (

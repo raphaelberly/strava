@@ -1,6 +1,8 @@
 import re
+from datetime import datetime, UTC
 
 import yaml
+from PIL.ImageChops import offset
 
 from lib.database import Database
 from lib.strava import Strava
@@ -18,7 +20,7 @@ print('Successfully connected to Strava')
 db = Database(**secrets['db'])
 
 # Fetch Strava activities
-last_epoch = db.last_activity_timestamp()
+last_epoch = db.last_activity_timestamp(offset=5)
 raw_activities = []
 per_page = 200
 page = 1
@@ -37,7 +39,7 @@ else:
 # Insert activities in database one by one
 i = 0
 for raw_activity in raw_activities:
-    activity = {}
+    activity = {'update_datetime_utc': datetime.now(UTC)}
     # For virtual rides, fetch description & create new "ftp_base" field
     if raw_activity['type'] == 'VirtualRide':
         raw_activity = strava.activity(raw_activity['id'])
@@ -54,7 +56,7 @@ for raw_activity in raw_activities:
         if value != {} and value != '':
             activity[column_name] = value
     # Insert activity
-    db.insert('activities', **activity)
+    db.upsert(table_name='activities', constraint_name='activities_pkey', **activity)
     i += 1
 if i > 0:
-    print(f'Successfully inserted {i} new activities to database')
+    print(f'Successfully upserted {i} activities to database')
