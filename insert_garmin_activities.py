@@ -23,7 +23,10 @@ start_date = date.fromtimestamp(db.last_activity_timestamp(table_name='activity'
 # RUNNING
 i, j = 0, 0
 activities = garmin.get_activities_by_date(start_date, date.today().isoformat())
-for activity in tqdm(reversed(activities), total=len(activities)):  # Read from oldest to new
+
+# Read from oldest to newest, and show progress bar if more than one candidate activity
+activities_gen = tqdm(reversed(activities), total=len(activities)) if len(activities) > 1 else reversed(activities)
+for activity in activities_gen:
     if 'running' in activity['activityType']['typeKey']:
         try:
             # Insert activity
