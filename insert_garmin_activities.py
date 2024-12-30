@@ -3,10 +3,10 @@ from datetime import date
 import garminconnect
 import yaml
 from psycopg2.errors import UniqueViolation
-from pushover import Pushover
 from tqdm import tqdm
 
 from lib.database import Database
+from lib.push import Push
 
 # Read configuration files
 conf = yaml.safe_load(open('conf/garmin.yaml'))
@@ -16,16 +16,15 @@ secrets['db']['schema'] = 'garmin'
 # Configure database connector
 db = Database(**secrets['db'])
 
-push = Pushover(token=secrets['push']['api_token'])
-push.user(user_token=secrets['push']['user_key'])
+# Configure notification service
+push = Push(**secrets['push'])
+
 
 try:
     garmin = garminconnect.Garmin()
     garmin.login(secrets['garmin']['token_store'])
 except Exception as e:
-    msg = push.msg("Could not connect to Garmin")
-    msg.set("title", "⚠️ Garmin Error")
-    push.send(msg)
+    push.send_message("Could not connect to Garmin", title='⚠️ Garmin Error')
     raise e
 
 start_date = date.fromtimestamp(db.last_activity_timestamp(table_name='activity')).isoformat()
@@ -58,9 +57,7 @@ for activity in activities_gen:
         except UniqueViolation:
             continue
         except Exception as e:
-            msg = push.msg("Could not insert Garmin activities")
-            msg.set("title", "⚠️ Garmin Error")
-            push.send(msg)
+            push.send_message("Could not insert Garmin activities", title='⚠️ Garmin Error')
             raise e
 
 print(f'Inserted {i} activities and {j} laps to database')

@@ -2,17 +2,17 @@ import re
 from datetime import datetime, UTC
 
 import yaml
-from pushover import Pushover
 
 from lib.database import Database
+from lib.push import Push
 from lib.strava import Strava
 
 # Read configuration files
 secrets = yaml.safe_load(open('conf/secrets.yaml'))
 conf = yaml.safe_load(open('conf/conf.yaml'))
 
-push = Pushover(token=secrets['push']['api_token'])
-push.user(user_token=secrets['push']['user_key'])
+# Configure notification service
+push = Push(**secrets['push'])
 
 try:
 
@@ -71,7 +71,5 @@ try:
         print(f'Successfully upserted {i} activities to database')
 
 except Exception as e:
-    msg = push.msg("Could not insert Strava activities")
-    msg.set("title", "⚠️ Strava Error")
-    push.send(msg)
+    push.send_message(message="Could not insert Strava activities", title="⚠️ Strava Error")
     raise e
