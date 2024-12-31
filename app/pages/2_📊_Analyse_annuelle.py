@@ -81,6 +81,7 @@ df_sport_agg['Somme cumulée'] = (df_sport_agg.groupby('Année')[metric].cumsum(
 
 fig = px.line(df_sport_agg, x='Semaine', y='Somme cumulée', color='Année')
 fig.update_traces(hovertemplate=None)
+fig.for_each_trace(lambda t: t.update(name=t.name))  # Make the captions ordered
 fig.update_layout(
     hovermode="x unified",
     xaxis_title=None,
