@@ -19,6 +19,12 @@ if st.button('🎯 Objectifs'):
 if st.button('📊 Analyse annuelle'):
     switch_page('analyse annuelle')
 
+if st.button('🏃🏼‍♂️ Analyse de foulée'):
+    switch_page('analyse de foulée')
+
+if st.button('🧘🏼 Analyse de volume'):
+    switch_page('analyse du volume')
+
 st.subheader('Rafraîchir')
 
 if st.button('Rafraîchir les sources de données'):
