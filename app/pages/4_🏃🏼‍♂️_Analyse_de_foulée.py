@@ -48,7 +48,7 @@ with center:
     end_years = [y for y in years if y >= start_year]
     end_year = st.selectbox(label='Année N', options=end_years, index=len(end_years)-1)
 
-laps = laps[(laps['activity_date'].dt.year >= start_year) & laps['activity_date'].dt.year <= end_year]
+laps = laps[(laps['activity_date'].dt.year >= start_year) & (laps['activity_date'].dt.year <= end_year)]
 
 left, center, right = st.columns(3)
 
