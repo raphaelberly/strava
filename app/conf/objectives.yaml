@@ -13,18 +13,8 @@ workout|weight:
   emoji: '💪🏻️'
   obj: 40
   obj_type: count
-backcountry:
-  title: Ski de rando
-  emoji: '⛷️'
-  obj: 5
-  obj_type: count
-alpine:
-  title: Ski alpin
-  emoji: '🚠️'
-  obj: 3
-  obj_type: count
-snowboard:
-  title: Snowboard
-  emoji: '🏂'
-  obj: 1
-  obj_type: count
+run_elev:
+  title: D+ course à pied
+  emoji: '⛰️'
+  obj: 50000
+  obj_type: elev

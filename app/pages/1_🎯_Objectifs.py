@@ -7,7 +7,7 @@ from yaml import safe_load
 from utils import db
 
 
-YEAR = 2024
+YEAR = 2025
 MONTH = datetime.date.today().month
 DOY = datetime.datetime.now().timetuple().tm_yday
 OBJECTIVES = safe_load(open('conf/objectives.yaml'))
@@ -35,22 +35,30 @@ def _display_objective(title: str, obj: str, current_total: str, current_progres
 
 
 def objective(key, title, emoji, obj, obj_type):
+    UNITS = {
+        'dist': 'km',
+        'count': 'sessions',
+        'elev': 'm',
+    }
     total_year = 0
     for k in key.split('|'):
+        k = k.split('_')[0]
         if obj_type == 'dist':
             total_year += df_year[df_year.type.str.lower().str.contains(k)].distance.sum() / 1000
         elif obj_type == 'count':
             total_year += len(df_year[df_year.type.str.lower().str.contains(k)])
+        elif obj_type == 'elev':
+            total_year += df_year[df_year.type.str.lower().str.contains(k)].total_elevation_gain.sum()
         else:
-            raise NotImplementedError('Only "dist" and "count" are supported as objective_type so far')
+            raise NotImplementedError(f'Only {UNITS.keys()} are supported as objective_type so far')
 
-    _delta = (total_year / obj - DOY / 365) * obj if obj_type == 'dist' else None
+    _delta = (total_year / obj - DOY / 365) * obj
     _display_objective(
         title=" ".join([emoji, title]),
-        obj=f'{obj} {"km" if obj_type == "dist" else "sessions"}',
-        current_total=f'{total_year:.0f} {"km" if obj_type == "dist" else ""}',
+        obj=f'{obj} {UNITS[obj_type]}',
+        current_total=f'{total_year:.0f} {UNITS[obj_type]}',
         current_progress=total_year / obj,
-        delta=f"{abs(_delta):.0f} km {'behind' if _delta < 0 else 'ahead'}" if _delta else None,
+        delta=f"{abs(_delta):.0f} {UNITS[obj_type]} {'behind' if _delta < 0 else 'ahead'}",
     )
 
 
@@ -108,10 +116,6 @@ left, right = st.columns(2, gap='medium')
 with left:
     sport = 'workout|weight'
     objective(sport, **OBJECTIVES[sport])
-    sport = 'alpine'
-    objective(sport, **OBJECTIVES[sport])
 with right:
-    sport = 'backcountry'
-    objective(sport, **OBJECTIVES[sport])
-    sport = 'snowboard'
+    sport = 'run_elev'
     objective(sport, **OBJECTIVES[sport])
