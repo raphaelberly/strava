@@ -99,7 +99,7 @@ st.dataframe(
         }),
         'Nom': tmp.name,
         'Distance (km)': (tmp.distance / 1000).round(2),
-        'Vitesse (km/h)': ((tmp.distance / 1000) / (tmp.moving_time / 3600)).round(1),
+        'D+ (m)': tmp.total_elevation_gain.round(),
         'url': 'https://www.strava.com/activities/' + tmp.id.astype(str),
     }).head(st.session_state.nb_activities),
     hide_index=True,
