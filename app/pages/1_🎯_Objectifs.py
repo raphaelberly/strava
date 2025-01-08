@@ -34,21 +34,22 @@ def _display_objective(title: str, obj: str, current_total: str, current_progres
         st.metric('Complétion', f'{current_progress * 100:.1f} %')
 
 
-def objective(key, title, emoji, obj, obj_type):
+def objective(key, title, emoji, obj, obj_type, filter_string=''):
     UNITS = {
         'dist': 'km',
         'count': 'sessions',
         'elev': 'm',
     }
     total_year = 0
+    df = df_year[df_year.name.str.lower().str.contains(filter_string.lower())].copy()
     for k in key.split('|'):
         k = k.split('_')[0]
         if obj_type == 'dist':
-            total_year += df_year[df_year.type.str.lower().str.contains(k)].distance.sum() / 1000
+            total_year += df[df.type.str.lower().str.contains(k)].distance.sum() / 1000
         elif obj_type == 'count':
-            total_year += len(df_year[df_year.type.str.lower().str.contains(k)])
+            total_year += len(df[df.type.str.lower().str.contains(k)])
         elif obj_type == 'elev':
-            total_year += df_year[df_year.type.str.lower().str.contains(k)].total_elevation_gain.sum()
+            total_year += df[df.type.str.lower().str.contains(k)].total_elevation_gain.sum()
         else:
             raise NotImplementedError(f'Only {UNITS.keys()} are supported as objective_type so far')
 
@@ -114,8 +115,10 @@ st.header('Objectifs secondaires')
 left, right = st.columns(2, gap='medium')
 
 with left:
+    sport = 'run_elev'
+    objective(sport, **OBJECTIVES[sport])
     sport = 'workout|weight'
     objective(sport, **OBJECTIVES[sport])
 with right:
-    sport = 'run_elev'
+    sport = 'run_runningclub'
     objective(sport, **OBJECTIVES[sport])

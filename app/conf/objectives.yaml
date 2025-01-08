@@ -18,3 +18,9 @@ run_elev:
   emoji: '⛰️'
   obj: 50000
   obj_type: elev
+run_runningclub:
+  title: HX3 Running Club
+  emoji: '🫶🏻'
+  obj: 15
+  obj_type: count
+  filter_string: 'HX3 Running Club'
