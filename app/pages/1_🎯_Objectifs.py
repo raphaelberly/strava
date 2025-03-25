@@ -34,7 +34,7 @@ def _display_objective(title: str, obj: str, current_total: str, current_progres
         st.metric('Complétion', f'{current_progress * 100:.1f} %')
 
 
-def objective(key, title, emoji, obj, obj_type, filter_string=''):
+def objective(title, emoji, sports, obj, obj_type, filter_string=''):
     UNITS = {
         'dist': 'km',
         'count': 'sessions',
@@ -42,14 +42,13 @@ def objective(key, title, emoji, obj, obj_type, filter_string=''):
     }
     total_year = 0
     df = df_year[df_year.name.str.lower().str.contains(filter_string.lower())].copy()
-    for k in key.split('|'):
-        k = k.split('_')[0]
+    for sport in sports:
         if obj_type == 'dist':
-            total_year += df[df.type.str.lower().str.contains(k)].distance.sum() / 1000
+            total_year += df[df.type.str.lower().str.contains(sport)].distance.sum() / 1000
         elif obj_type == 'count':
-            total_year += len(df[df.type.str.lower().str.contains(k)])
+            total_year += len(df[df.type.str.lower().str.contains(sport)])
         elif obj_type == 'elev':
-            total_year += df[df.type.str.lower().str.contains(k)].total_elevation_gain.sum()
+            total_year += df[df.type.str.lower().str.contains(sport)].total_elevation_gain.sum()
         else:
             raise NotImplementedError(f'Only {UNITS.keys()} are supported as objective_type so far')
 
@@ -70,9 +69,9 @@ st.header('Objectifs principaux')
 left, right = st.columns(2, gap='medium')
 
 with left:
-    objective('run', **OBJECTIVES['run'])
+    objective(**OBJECTIVES['run'])
 with right:
-    objective('ride', **OBJECTIVES['ride'])
+    objective(**OBJECTIVES['ride'])
 
 st.subheader('Dernières activités')
 
@@ -115,10 +114,10 @@ st.header('Objectifs secondaires')
 left, right = st.columns(2, gap='medium')
 
 with left:
-    sport = 'run_elev'
-    objective(sport, **OBJECTIVES[sport])
-    sport = 'workout|weight'
-    objective(sport, **OBJECTIVES[sport])
+    sport = 'feet_elev'
+    objective(**OBJECTIVES[sport])
+    sport = 'hiit'
+    objective(**OBJECTIVES[sport])
 with right:
     sport = 'run_runningclub'
-    objective(sport, **OBJECTIVES[sport])
+    objective(**OBJECTIVES[sport])

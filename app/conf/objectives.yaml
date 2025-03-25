@@ -1,26 +1,40 @@
 run:
   title: Course à pied
   emoji: '🏃🏼‍♂️'
+  sports:
+    - run
   obj: 1800
   obj_type: dist
 ride:
   title: Vélo de route
   emoji: '🚴🏼‍♂️'
+  sports:
+    - ride
   obj: 4500
   obj_type: dist
-workout|weight:
+hiit:
   title: Renfo
   emoji: '💪🏻️'
+  sports:
+    - workout
+    - weight
   obj: 40
   obj_type: count
-run_elev:
-  title: D+ course à pied
+feet_elev:
+  title: D+ à pied ou à ski
   emoji: '⛰️'
-  obj: 50000
+  sports:
+    - run
+    - hike
+    - walk
+    - backcountry
+  obj: 60000
   obj_type: elev
 run_runningclub:
   title: HX3 Running Club
   emoji: '🫶🏻'
+  sports:
+    - run
   obj: 15
   obj_type: count
   filter_string: 'HX3 Running Club'
