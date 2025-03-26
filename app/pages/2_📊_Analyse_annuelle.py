@@ -1,3 +1,4 @@
+from cProfile import label
 from datetime import datetime, date, timedelta
 
 import streamlit as st
@@ -24,10 +25,7 @@ metric_options = {
 years_ordered = sorted(range(2021, datetime.today().year+1, 1), reverse=True)
 sports_ordered = df[df['Type'] != 'Autre'].groupby('Type')['moving_time'].sum().sort_values(ascending=False).index
 
-left, _, _ = st.columns(3)
-with left:
-    SPORT = st.selectbox('Sport', options=['Tous les sports'] + list(sports_ordered))
-
+SPORTS = st.multiselect(label='Sports', options=sports_ordered) or list(sports_ordered)
 
 st.header('Bilan par année')
 
@@ -39,9 +37,8 @@ df_year = df[df.start_datetime_utc.dt.year == YEAR]
 df_year_prev = df[df.start_datetime_utc.dt.year == YEAR - 1]
 if YEAR == date.today().year:
     df_year_prev = df_year_prev[df_year_prev.start_datetime_utc.dt.date <= date.today() - timedelta(days=365)]
-if SPORT != 'Tous les sports':
-    df_year = df_year[df_year["Type"] == SPORT]
-    df_year_prev = df_year_prev[df_year_prev["Type"] == SPORT]
+df_year = df_year[df_year["Type"].isin(SPORTS)]
+df_year_prev = df_year_prev[df_year_prev["Type"].isin(SPORTS)]
 
 left, left_center, right_center, right = st.columns(4)
 
@@ -69,10 +66,7 @@ with left:
     metric = st.selectbox('Métrique', options=metric_options.keys(), index=2)
     metric = metric_options[metric]
 
-if SPORT != 'Tous les sports':
-    df_sport = df[df["Type"] == SPORT]
-else:
-    df_sport = df
+df_sport = df[df["Type"].isin(SPORTS)]
 df_sport['Année'] = df_sport['start_datetime_utc'].dt.year.astype(str)
 df_sport['Semaine'] = df_sport['start_datetime_utc'].dt.isocalendar().week
 
