@@ -28,6 +28,7 @@ feet_elev:
     - hike
     - walk
     - backcountry
+    - snowshoe
   obj: 60000
   obj_type: elev
 run_runningclub:
@@ -38,3 +39,11 @@ run_runningclub:
   obj: 15
   obj_type: count
   filter_string: 'HX3 Running Club'
+run_intervals:
+  title: Interval Trainings
+  emoji: '🫡'
+  sports:
+    - run
+  obj: 20
+  obj_type: count
+  filter_string: 'frac'

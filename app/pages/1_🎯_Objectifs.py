@@ -119,5 +119,7 @@ with left:
     sport = 'hiit'
     objective(**OBJECTIVES[sport])
 with right:
+    sport = 'run_intervals'
+    objective(**OBJECTIVES[sport])
     sport = 'run_runningclub'
     objective(**OBJECTIVES[sport])
