@@ -44,6 +44,6 @@ run_intervals:
   emoji: '🫡'
   sports:
     - run
-  obj: 20
+  obj: 25
   obj_type: count
   filter_string: 'frac'
