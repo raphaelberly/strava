@@ -10,7 +10,7 @@ ride:
   emoji: '🚴🏼‍♂️'
   sports:
     - ride
-  obj: 4500
+  obj: 4000
   obj_type: dist
 hiit:
   title: Renfo
