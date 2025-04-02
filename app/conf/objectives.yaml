@@ -44,6 +44,14 @@ run_intervals:
   emoji: '🫡'
   sports:
     - run
-  obj: 25
+  obj: 30
   obj_type: count
   filter_string: 'frac'
+run_longruns:
+  title: 20k+ Long Runs
+  emoji: '🦾'
+  sports:
+    - run
+  obj: 40
+  obj_type: count
+  filter_dist: 20

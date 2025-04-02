@@ -34,7 +34,7 @@ def _display_objective(title: str, obj: str, current_total: str, current_progres
         st.metric('Complétion', f'{current_progress * 100:.1f} %')
 
 
-def objective(title, emoji, sports, obj, obj_type, filter_string=''):
+def objective(title, emoji, sports, obj, obj_type, filter_string='', filter_dist=0):
     UNITS = {
         'dist': 'km',
         'count': 'sessions',
@@ -42,6 +42,7 @@ def objective(title, emoji, sports, obj, obj_type, filter_string=''):
     }
     total_year = 0
     df = df_year[df_year.name.str.lower().str.contains(filter_string.lower())].copy()
+    df = df[df.distance / 1000 >= filter_dist]
     for sport in sports:
         if obj_type == 'dist':
             total_year += df[df.type.str.lower().str.contains(sport)].distance.sum() / 1000
@@ -116,10 +117,20 @@ left, right = st.columns(2, gap='medium')
 with left:
     sport = 'feet_elev'
     objective(**OBJECTIVES[sport])
-    sport = 'hiit'
+    sport = 'run_longruns'
     objective(**OBJECTIVES[sport])
 with right:
     sport = 'run_intervals'
     objective(**OBJECTIVES[sport])
+
+
+st.header('Objectifs bonus')
+
+left, right = st.columns(2, gap='medium')
+
+with left:
+    sport = 'hiit'
+    objective(**OBJECTIVES[sport])
+with right:
     sport = 'run_runningclub'
     objective(**OBJECTIVES[sport])
