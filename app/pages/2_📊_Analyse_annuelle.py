@@ -14,13 +14,8 @@ df['moving_time'] = (df['moving_time'] / 3600).round(2)
 df['distance'] = (df['distance'] / 1000).round(2)
 df['nb_activities'] = 1
 df['Type'] = df.type.map(NAMES).fillna('Autre')
-
-metric_options = {
-    "Nombre d'activités": 'nb_activities',
-    "Temps d'activité": 'moving_time',
-    "Distance": 'distance',
-    "Distance verticale": 'total_elevation_gain',
-}
+df['nb_longer_than_20k'] = (df['distance'] >= 20).astype(int)
+df['nb_interval_trainings'] = df['name'].str.lower().str.contains('frac').astype(int)
 
 years_ordered = sorted(range(2021, datetime.today().year+1, 1), reverse=True)
 sports_ordered = df[df['Type'] != 'Autre'].groupby('Type')['moving_time'].sum().sort_values(ascending=False).index
@@ -61,7 +56,16 @@ with right:
 
 st.header('Totaux cumulés')
 
-left, _, _ = st.columns(3)
+metric_options = {
+    "Nombre d'activités": 'nb_activities',
+    "Temps d'activité": 'moving_time',
+    "Distance": 'distance',
+    "Distance verticale": 'total_elevation_gain',
+    "Nombre de fractionnés": 'nb_interval_trainings',
+    "Nombre de sorties de 20k+": 'nb_longer_than_20k',
+}
+
+left, _ = st.columns(2)
 with left:
     metric = st.selectbox('Métrique', options=metric_options.keys(), index=2)
     metric = metric_options[metric]
