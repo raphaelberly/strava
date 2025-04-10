@@ -23,7 +23,7 @@ def _display_objective(title: str, obj: str, current_total: str, current_progres
         value=min(current_progress, 1.0),
         text=f'Objectif : {obj}',
     )
-    sub_left, sub_right = st.columns(2)
+    sub_left, sub_right = st.columns(spec=[3,2])
     with sub_left:
         if delta:
             delta_color = 'inverse' if 'behind' in delta else 'normal'
