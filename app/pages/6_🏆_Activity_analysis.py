@@ -40,6 +40,7 @@ with left:
         'speed_to_heartrate',
         'power_to_heartrate',
         'stride_length',
+        'average_speed',
         'average_cadence',
         'average_heartrate',
         'vertical_oscillation',
