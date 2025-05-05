@@ -84,7 +84,9 @@ class Database(object):
                 constraint=constraint_name,
                 columns=', '.join(list(kwargs.keys())),
                 values="','".join((str(v).replace("'", "''") for v in kwargs.values())),
-                updates=", ".join([f"{k}='{str(v).replace("'", "''")}'" for k, v in kwargs.items()])
+                updates=", ".join([
+                    "{k}='{v}'".format(k=k, v=str(v).replace("'", "''")) for k, v in kwargs.items()
+                ])
             ).replace("'None'", "NULL")
         with get_conn(**self._credentials) as conn:
             return self._execute(query, conn)
