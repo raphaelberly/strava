@@ -57,7 +57,7 @@ if include_trail_running is False:
     laps = laps[laps['activity_type'] == 'running']
 
 laps['time_in_ef'] = laps['moving_time'] * (laps['average_heartrate'] <= ef_max)
-laps['time_in_tempo'] = laps['moving_time'] * laps['average_heartrate'].between(ef_max, threshold)
+laps['time_in_tempo'] = laps['moving_time'] * laps['average_heartrate'].between(ef_max, threshold, inclusive='right')
 laps['time_above_threshold'] = laps['moving_time'] * (laps['average_heartrate'] > threshold)
 
 left, center, right = st.columns(3)
