@@ -13,13 +13,14 @@ ride:
   obj: 4000
   obj_type: dist
 hiit:
-  title: Renfo
+  title: HIIT
   emoji: '💪🏻️'
   sports:
     - workout
     - weight
   obj: 40
   obj_type: count
+  filter_string: 'HIIT'
 feet_elev:
   title: D+ à pied ou à ski
   emoji: '⛰️'
