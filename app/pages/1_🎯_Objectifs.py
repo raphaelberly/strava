@@ -26,7 +26,7 @@ def _display_objective(title: str, obj: str, current_total: str, current_progres
     sub_left, sub_right = st.columns(spec=[3,2])
     with sub_left:
         if delta:
-            delta_color = 'inverse' if 'behind' in delta else 'normal'
+            delta_color = 'inverse' if 'de retard' in delta else 'normal'
             st.metric('Total actuel', current_total, delta=delta, delta_color=delta_color)
         else:
             st.metric('Total actuel', current_total)
@@ -59,7 +59,7 @@ def objective(title, emoji, sports, obj, obj_type, filter_string='', filter_dist
         obj=f'{obj} {UNITS[obj_type]}',
         current_total=f'{total_year:.0f} {UNITS[obj_type]}',
         current_progress=total_year / obj,
-        delta=f"{abs(_delta):.0f} {UNITS[obj_type]} {'behind' if _delta < 0 else 'ahead'}",
+        delta=f"""{abs(_delta):.0f} {UNITS[obj_type]} {'de retard' if _delta < 0 else "d'avance"}""",
     )
 
 
