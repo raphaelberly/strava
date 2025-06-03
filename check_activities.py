@@ -32,8 +32,11 @@ WHERE a.type = a.lag_type
 """
 results = db.run_query(query)
 if len(results) > 0:
+    print(f'{len(results)} potential duplicates found')
     for item in results.to_dict(orient="records"):
         push.send_message(
             message=f'''Similar activities found: "{item['name']}" and "{item['lag_name']}"''',
             title="⚠️ Potential Strava duplicates"
         )
+else:
+    print('No potential duplicates found')
