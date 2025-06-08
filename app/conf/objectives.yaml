@@ -3,7 +3,7 @@ run:
   emoji: '🏃🏼‍♂️'
   sports:
     - run
-  obj: 1800
+  obj: 2000
   obj_type: dist
 ride:
   title: Vélo de route
