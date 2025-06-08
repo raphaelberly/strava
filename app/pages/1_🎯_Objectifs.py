@@ -1,11 +1,9 @@
 import datetime
 
-import pandas as pd
 import streamlit as st
 from yaml import safe_load
 
 from utils import db
-
 
 YEAR = 2025
 MONTH = datetime.date.today().month
@@ -53,13 +51,17 @@ def objective(title, emoji, sports, obj, obj_type, filter_string='', filter_dist
         else:
             raise NotImplementedError(f'Only {UNITS.keys()} are supported as objective_type so far')
 
-    _delta = (total_year / obj - DOY / 365) * obj
+    _delta = float((total_year / obj - DOY / 365) * obj).__round__(0)
+    if _delta == 0:
+        delta_str = "Pile sur l'objectif"
+    else:
+        delta_str = f"""{abs(_delta):.0f} {UNITS[obj_type]} {'de retard' if _delta < 0 else "d'avance"}"""
     _display_objective(
         title=" ".join([emoji, title]),
         obj=f'{obj} {UNITS[obj_type]}',
         current_total=f'{total_year:.0f} {UNITS[obj_type]}',
         current_progress=total_year / obj,
-        delta=f"""{abs(_delta):.0f} {UNITS[obj_type]} {'de retard' if _delta < 0 else "d'avance"}""",
+        delta=delta_str,
     )
 
 
