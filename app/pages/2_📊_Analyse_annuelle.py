@@ -1,4 +1,3 @@
-from cProfile import label
 from datetime import datetime, date, timedelta
 
 import streamlit as st
@@ -14,6 +13,9 @@ df['moving_time'] = (df['moving_time'] / 3600).round(2)
 df['distance'] = (df['distance'] / 1000).round(2)
 df['nb_activities'] = 1
 df['Type'] = df.type.map(NAMES).fillna('Autre')
+# For "Renfo" we filter out on the activity name
+df.loc[(df['Type'] == 'Renfo') &
+       (~df.name.str.lower().str.contains('hiit') & ~df.name.str.lower().str.contains('renfo')), 'Type'] = 'Autre'
 df['nb_longer_than_20k'] = (df['distance'] >= 20).astype(int)
 df['nb_interval_trainings'] = df['name'].str.lower().str.contains('frac').astype(int)
 
