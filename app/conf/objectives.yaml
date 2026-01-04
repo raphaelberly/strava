@@ -10,7 +10,7 @@ ride:
   emoji: '🚴🏼‍♂️'
   sports:
     - ride
-  obj: 4000
+  obj: 3000
   obj_type: dist
 hiit:
   title: HIIT
@@ -30,29 +30,29 @@ feet_elev:
     - walk
     - backcountry
     - snowshoe
-  obj: 60000
+  obj: 80000
   obj_type: elev
-run_runningclub:
-  title: HX3 Running Club
-  emoji: '🫶🏻'
-  sports:
-    - run
-  obj: 15
-  obj_type: count
-  filter_string: 'HX3 Running Club'
 run_intervals:
   title: Interval Trainings
   emoji: '🫡'
   sports:
     - run
-  obj: 30
+  obj: 20
   obj_type: count
   filter_string: 'frac'
-run_longruns:
+run_20ks:
   title: 20k+ Long Runs
+  emoji: '💪🏻'
+  sports:
+    - run
+  obj: 30
+  obj_type: count
+  filter_dist: 20
+run_30ks:
+  title: 30k+ Long Runs
   emoji: '🦾'
   sports:
     - run
-  obj: 40
+  obj: 10
   obj_type: count
-  filter_dist: 20
+  filter_dist: 30

@@ -5,7 +5,7 @@ from yaml import safe_load
 
 from utils import db
 
-YEAR = 2025
+YEAR = 2026
 MONTH = datetime.date.today().month
 DOY = datetime.datetime.now().timetuple().tm_yday
 OBJECTIVES = safe_load(open('conf/objectives.yaml'))
@@ -73,30 +73,16 @@ left, right = st.columns(2, gap='medium')
 
 with left:
     objective(**OBJECTIVES['run'])
+    objective(**OBJECTIVES['hiit'])
 with right:
     objective(**OBJECTIVES['ride'])
+    objective(**OBJECTIVES['feet_elev'])
 
 st.header('Objectifs secondaires')
 
 left, right = st.columns(2, gap='medium')
 
 with left:
-    sport = 'feet_elev'
-    objective(**OBJECTIVES[sport])
-    sport = 'run_longruns'
-    objective(**OBJECTIVES[sport])
+    objective(**OBJECTIVES['run_20ks'])
 with right:
-    sport = 'run_intervals'
-    objective(**OBJECTIVES[sport])
-
-
-st.header('Objectifs bonus')
-
-left, right = st.columns(2, gap='medium')
-
-with left:
-    sport = 'hiit'
-    objective(**OBJECTIVES[sport])
-with right:
-    sport = 'run_runningclub'
-    objective(**OBJECTIVES[sport])
+    objective(**OBJECTIVES['run_30ks'])
