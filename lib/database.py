@@ -15,7 +15,7 @@ LOCAL_DIR = path.dirname(__file__)
 @contextmanager
 def get_conn(host, port, user, password, database, remote_host=None, remote_port=None, remote_username=None,
              local_port=None):
-    _credentials = {'host': 'localhost', 'port': local_port, 'user': user, 'password': password, 'database': database}
+    _credentials = {'host': 'localhost', 'user': user, 'password': password, 'database': database}
     if remote_host is not None:
         assert remote_port is not None and remote_username is not None
         with SSHTunnelForwarder(
@@ -23,13 +23,13 @@ def get_conn(host, port, user, password, database, remote_host=None, remote_port
                 ssh_address_or_host=(remote_host, remote_port),
                 ssh_username=remote_username,
                 remote_bind_address=(host, port),
-                local_bind_address=('localhost', local_port),
-                host_pkey_directories=[],
-        ):
-            with psycopg2.connect(**_credentials) as conn:
+                local_bind_address=('localhost', local_port or 0),  # Use 0 for auto-assignment if not specified
+        ) as tunnel:
+            actual_local_port = tunnel.local_bind_address[1]
+            with psycopg2.connect(port=actual_local_port, **_credentials) as conn:
                 yield conn
     else:
-        with psycopg2.connect(**_credentials) as conn:
+        with psycopg2.connect(port=port, **_credentials) as conn:
             yield conn
 
 
