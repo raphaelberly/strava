@@ -20,7 +20,7 @@ hiit:
     - weight
   obj: 40
   obj_type: count
-  filter_string: 'HIIT'
+  name_pattern: 'hiit|renfo'
 feet_elev:
   title: D+ à pied ou à ski
   emoji: '⛰️'
@@ -39,7 +39,7 @@ run_intervals:
     - run
   obj: 20
   obj_type: count
-  filter_string: 'frac'
+  name_pattern: 'frac'
 run_20ks:
   title: 20k+ Long Runs
   emoji: '💪🏻'
