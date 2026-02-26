@@ -24,6 +24,7 @@ def get_conn(host, port, user, password, database, remote_host=None, remote_port
                 ssh_username=remote_username,
                 remote_bind_address=(host, port),
                 local_bind_address=('localhost', local_port or 0),  # Use 0 for auto-assignment if not specified
+                host_pkey_directories=[],
         ) as tunnel:
             actual_local_port = tunnel.local_bind_address[1]
             with psycopg2.connect(port=actual_local_port, **_credentials) as conn:
