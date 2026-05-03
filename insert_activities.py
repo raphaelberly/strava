@@ -50,7 +50,10 @@ try:
     for raw_activity in raw_activities:
         activity = {'update_datetime_utc': datetime.now(UTC)}
         # For virtual rides, fetch description & create new "ftp_base" field
-        if raw_activity['type'] == 'VirtualRide':
+        if raw_activity['type'] == 'Run':
+            if raw_activity['sport_type'] == 'TrailRun':
+                raw_activity['type'] = 'TrailRun'
+        elif raw_activity['type'] == 'VirtualRide':
             raw_activity = strava.activity(raw_activity['id'])
             ftp_search = re.search(r'base ftp (de )?(\d+) ?w', raw_activity['description'], re.IGNORECASE)
             if ftp_search:
