@@ -1,5 +1,6 @@
 NAMES = {
     'Run': 'Course à pied',
+    'TrailRun': 'Trail',
     'Ride': 'Vélo',
     'VirtualRide': 'Vélo',
     'Hike': 'Randonnée',

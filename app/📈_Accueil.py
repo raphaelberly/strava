@@ -49,6 +49,7 @@ st.dataframe(
         'Date': tmp.start_datetime_utc.dt.date,
         'Type': tmp.type.map({
             'Run': '🏃🏼‍♂️',
+            'TrailRun': '🏃🏼‍♂️',
             'Ride': '🚴🏼‍♂️',
             'VirtualRide': '🚴🏼‍♂️',
         }),
