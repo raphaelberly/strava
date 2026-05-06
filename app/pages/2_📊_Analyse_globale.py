@@ -47,12 +47,11 @@ df_sport_agg = df_sport.groupby(['Année'])[METRIC].sum().reset_index(drop=False
 # Calculate projected value for current year
 current_year = str(datetime.now().year)
 current_day_of_year = datetime.now().timetuple().tm_yday
-days_in_year = 366 if datetime.now().year % 4 == 0 and (datetime.now().year % 100 != 0 or datetime.now().year % 400 == 0) else 365
 
 df_sport_agg['projected_value'] = df_sport_agg[METRIC]
 if current_year in df_sport_agg['Année'].values:
     current_value = df_sport_agg.loc[df_sport_agg['Année'] == current_year, METRIC].values[0]
-    projected_value = current_value * (days_in_year / current_day_of_year)
+    projected_value = current_value * (365 / current_day_of_year)
     df_sport_agg.loc[df_sport_agg['Année'] == current_year, 'projected_value'] = projected_value
 
 # Calculate year-over-year percentage change using projected value for current year
@@ -60,13 +59,9 @@ df_sport_agg['pct_change'] = df_sport_agg['projected_value'].pct_change() * 100
 
 # Create text labels for percentage change (e.g., "+14%")
 df_sport_agg['label'] = df_sport_agg['pct_change'].apply(
-    lambda x: f"{'+' if x > 0 else ''}{x:.1f}%" if pd.notna(x) and np.isfinite(x) else ""
+    lambda x: f"{'+' if x >= 0 else ''}{x:.1f}%" if pd.notna(x) and np.isfinite(x) else ""
 )
-
-# Assign label colors: green for increase, red for decrease
-df_sport_agg['label_color'] = df_sport_agg['pct_change'].apply(
-    lambda x: '#2ecc71' if x > 0 else ('#e74c3c' if x < 0 else '#3498db') if pd.notna(x) and np.isfinite(x) else '#3498db'
-)
+df_sport_agg['label_color'] = df_sport_agg['pct_change'].apply(lambda x: '#2ecc71' if x >= 0 else '#e74c3c')
 
 # Create bar chart with graph_objects for more control
 fig = go.Figure()
@@ -87,24 +82,17 @@ if current_year in df_sport_agg['Année'].values:
         x=[current_year],
         y=[projected_value],
         marker_color='rgba(52, 152, 219, 0.3)',  # Translucent blue
-        name='Projection annuelle',
         showlegend=False,
         customdata=[[pct_text]],
-        hovertemplate=(
-            f'<b>%{{y:.2f}}</b> (%{{customdata[0]}})<br>'
-            '<extra></extra>'
-        )
+        hovertemplate=f'<b>%{{y:.2f}}</b> (%{{customdata[0]}})<br><extra></extra>'
     ))
 
 # Prepare customdata for actual bars (percentage change for each year)
 customdata_actual = []
 for idx, row in df_sport_agg.iterrows():
-    if row['Année'] == current_year:
-        # For current year actual bar, don't show percentage
-        customdata_actual.append([''])
-    elif row['label']:
+    if row['label']:
         # For other years with labels, show the percentage
-        customdata_actual.append([row['label']])
+        customdata_actual.append([f" ({row['label']})"])
     else:
         customdata_actual.append([''])
 
@@ -113,30 +101,22 @@ fig.add_trace(go.Bar(
     x=df_sport_agg['Année'],
     y=df_sport_agg[METRIC],
     marker_color='#3498db',
-    name='Valeur actuelle',
     customdata=customdata_actual,
-    hovertemplate=(
-            f'<b>%{{y:.2f}}</b> %{{customdata[0]}})<br>'
-            '<extra></extra>'
-    )
+    hovertemplate=f'<b>%{{y:.2f}}</b> %{{customdata[0]}}<br><extra></extra>'
 ))
 
-# Update layout
 fig.update_layout(
-    title=f'Évolution annuelle - {metric_name}',
     xaxis_title='Année',
     yaxis_title=metric_name,
     showlegend=False,
-    height=500,
     barmode='overlay'  # Overlay bars so projected bar appears behind
 )
 
 # Add colored text annotations for percentage change
 for idx, row in df_sport_agg.iterrows():
-    if row['label']:  # Only add label if it exists (not the first bar)
+    if row['label']:
         # For current year, place label on projected bar; for others, on actual bar
         y_position = row['projected_value'] if row['Année'] == current_year else row[METRIC]
-
         fig.add_annotation(
             x=row['Année'],
             y=y_position,
