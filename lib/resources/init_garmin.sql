@@ -62,9 +62,11 @@ CREATE OR REPLACE VIEW garmin.activity_enriched AS (
         g.*,
         s.name
     FROM garmin.activity g
-    INNER JOIN strava.activities s
+    LEFT JOIN strava.activities s
         ON DATE(g.start_datetime_utc) = DATE(s.start_datetime_utc)
-        AND round(g.distance) = round(s.distance)
+        AND round(g.distance/1000) = round(s.distance/1000)
+        AND lower(s.type) LIKE '%run%'
+    ORDER BY start_datetime_utc DESC
 );
 
 CREATE OR REPLACE VIEW garmin.lap_enriched AS (
