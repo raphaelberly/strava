@@ -17,8 +17,11 @@ st.subheader('Choisir un outil')
 if st.button('🎯 Objectifs'):
     switch_page('objectifs')
 
-if st.button('📊 Analyse annuelle'):
+if st.button('📈 Analyse annuelle'):
     switch_page('analyse annuelle')
+
+if st.button('📊 Analyse globale'):
+    switch_page('analyse globale')
 
 if st.button('🏃🏼‍♂️ Analyse de foulée'):
     switch_page('analyse de foulée')
