@@ -36,7 +36,7 @@ metric_options = {
 
 left, _ = st.columns(2)
 with left:
-    metric_name = st.selectbox('Métrique', options=metric_options.keys(), index=2)
+    metric_name = st.selectbox('Métrique', options=metric_options.keys(), index=1)
     METRIC = metric_options[metric_name]
 
 df_sport = df[df["Type"].isin(SPORTS)]
@@ -63,6 +63,17 @@ df_sport_agg['label'] = df_sport_agg['pct_change'].apply(
 )
 df_sport_agg['label_color'] = df_sport_agg['pct_change'].apply(lambda x: '#2ecc71' if x >= 0 else '#e74c3c')
 
+# Determine if we should use "k" formatting based on average per year
+avg_per_year = df_sport_agg[METRIC].mean()
+use_k_format = avg_per_year > 1000
+
+def format_value(val, use_k_format=False):
+    """Format value with 'k' suffix if average is above 1000"""
+    if use_k_format:
+        return f"{val/1000:.1f}k"
+    else:
+        return f"{val:.0f}" if val >= 10 else f"{val:.1f}"
+
 # Create bar chart with graph_objects for more control
 fig = go.Figure()
 
@@ -72,29 +83,35 @@ if current_year in df_sport_agg['Année'].values:
     projected_value = current_row['projected_value']
     pct_change = current_row['pct_change']
 
-    # Format percentage change with color indicator
+    # Format value and percentage change with color
+    formatted_value = format_value(projected_value, use_k_format)
     if pd.notna(pct_change) and np.isfinite(pct_change):
-        pct_text = f"{'+' if pct_change > 0 else ''}{pct_change:.1f}%"
+        pct_text = f"{'+' if pct_change >= 0 else ''}{pct_change:.1f}%"
+        pct_color = '#2ecc71' if pct_change >= 0 else '#e74c3c'
     else:
         pct_text = ""
+        pct_color = ""
 
     fig.add_trace(go.Bar(
         x=[current_year],
         y=[projected_value],
         marker_color='rgba(52, 152, 219, 0.3)',  # Translucent blue
         showlegend=False,
-        customdata=[[pct_text]],
-        hovertemplate=f'<b>%{{y:.2f}}</b> (%{{customdata[0]}})<br><extra></extra>'
+        customdata=[[formatted_value, pct_text, pct_color]],
+        hovertemplate='<b>%{customdata[0]}</b> (<span style="color:%{customdata[2]}">%{customdata[1]}</span>)<extra></extra>'
     ))
 
-# Prepare customdata for actual bars (percentage change for each year)
+# Prepare customdata for actual bars (formatted value, percentage text, and color)
 customdata_actual = []
 for idx, row in df_sport_agg.iterrows():
+    formatted_value = format_value(row[METRIC])
     if row['label']:
-        # For other years with labels, show the percentage
-        customdata_actual.append([f" ({row['label']})"])
+        pct_text = row['label']
+        pct_color = row['label_color']
     else:
-        customdata_actual.append([''])
+        pct_text = ""
+        pct_color = ""
+    customdata_actual.append([formatted_value, pct_text, pct_color])
 
 # Add actual values bars on top
 fig.add_trace(go.Bar(
@@ -102,13 +119,13 @@ fig.add_trace(go.Bar(
     y=df_sport_agg[METRIC],
     marker_color='#3498db',
     customdata=customdata_actual,
-    hovertemplate=f'<b>%{{y:.2f}}</b> %{{customdata[0]}}<br><extra></extra>'
+    hovertemplate='<b>%{customdata[0]}</b> (<span style="color:%{customdata[2]}">%{customdata[1]}</span>)<extra></extra>'
 ))
 
 fig.update_layout(
     showlegend=False,
     barmode='overlay',  # Overlay bars so projected bar appears behind
-    margin=dict(t=20, b=40, l=40, r=20)  # Reduce top margin to minimize empty space
+    margin=dict(t=40, b=40, l=20, r=20)  # Reduce top margin to minimize empty space
 )
 
 # Add colored text annotations for percentage change
