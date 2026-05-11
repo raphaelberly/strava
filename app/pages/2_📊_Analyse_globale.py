@@ -106,10 +106,9 @@ fig.add_trace(go.Bar(
 ))
 
 fig.update_layout(
-    xaxis_title='Année',
-    yaxis_title=metric_name,
     showlegend=False,
-    barmode='overlay'  # Overlay bars so projected bar appears behind
+    barmode='overlay',  # Overlay bars so projected bar appears behind
+    margin=dict(t=20, b=40, l=40, r=20)  # Reduce top margin to minimize empty space
 )
 
 # Add colored text annotations for percentage change
