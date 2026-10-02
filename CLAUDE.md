@@ -34,13 +34,13 @@ cd app && streamlit run 📈_Accueil.py
 - `conf/secrets.yaml` (gitignored): `db` (kwargs for `Database`: `localhost:5433` locally, the `pi-db` tunnel's end, and `localhost:5432` on the Pi), `strava` (OAuth refresh-token credentials), `push` (Pushover `user_key`/`api_token`), `garmin` (`token_store` only: `garmin_login.py` prompts for the Garmin credentials so they are never stored).
 - `conf/conf.yaml`: `columns` maps each `strava.activities` column to a dotted path in the Strava API payload (e.g. `polyline: map.summary_polyline`). `insert_activities.py` walks these paths, so adding a Strava column means adding it here and in the table.
 - `conf/garmin.yaml`: `activity` and `lap` map DB columns to Garmin payload keys (flat, not dotted).
-- `app/conf/accounts.yaml` (gitignored): `streamlit_authenticator` credentials and cookie settings. Same user and bcrypt-hashed password as accountin's copy, but its own cookie `name`/`key`.
+- `app/conf/accounts.yaml` (gitignored): `streamlit_authenticator` credentials (bcrypt-hashed passwords) and cookie settings.
 - `app/.streamlit/config.toml`: no error details in the browser, viewer-only toolbar (haproxy connects from localhost, so the default `auto` mode would show developer options to everyone), no usage stats.
 - `app/conf/objectives.yaml`: yearly objectives for the Objectifs page (sports matched by substring of lowercased `type`, `obj_type` of `dist`/`count`/`elev`, optional `name_pattern` regex and `filter_dist` in km).
 
 ## Architecture
 
-- `lib/database.py`: `get_conn` context manager (a plain psycopg2 connection: the SSH tunnel used locally is OpenSSH's, configured outside the code) and a flat `Database` class with `run_query` (returns a DataFrame), `insert`, `upsert(constraint_name=...)` and `last_activity_timestamp`. Queries are built as f-string / `.format()` SQL with `'` escaped and `'None'` replaced by `NULL`; parameterized queries are deliberately not used. `get_conn` and `lib/push.py` are copied by hand across the author's other repos (accountin, journal): keep them in sync rather than refactoring one copy.
+- `lib/database.py`: `get_conn` context manager (a plain psycopg2 connection: the SSH tunnel used locally is OpenSSH's, configured outside the code) and a flat `Database` class with `run_query` (returns a DataFrame), `insert`, `upsert(constraint_name=...)` and `last_activity_timestamp`. Queries are built as f-string / `.format()` SQL with `'` escaped and `'None'` replaced by `NULL`; parameterized queries are deliberately not used.
 - `lib/strava.py`: thin wrapper over the Strava REST API, one method per endpoint returning raw JSON and raising on HTTP errors.
 - `lib/resources/*.sql`: schema DDL for `strava` and `garmin` schemas, including the views the app reads (`strava.activities_curated`, `garmin.activity_enriched`, `garmin.lap_enriched`). Apply changes manually; there is no migration tool.
 - The `Database` schema is set per instance: Strava code uses `secrets['db']['schema']`, the Garmin script overrides it to `garmin`.
@@ -54,7 +54,7 @@ cd app && streamlit run 📈_Accueil.py
 ### Streamlit app
 
 - `app/📈_Accueil.py` is the home page; `app/pages/` holds numbered, emoji-prefixed pages (Streamlit multipage convention). Cross-page buttons use `st.switch_page('pages/<filename>')`.
-- Every page calls `authenticate()` from `app/autenthicator.py` before querying anything; a new page must too, since Streamlit serves each page at its own URL. The module is copied from accountin (keep both in sync). It writes form logins to `log/app_logins.log` (path relative to `app/`) with the client IP from the last `X-Forwarded-For` header, the one the Pi's haproxy adds. On the Pi, fail2ban's `sports-login` jail bans IPs from `Failed login from <ip>` lines, using accountin's `/etc/fail2ban/filter.d/accountin-login.conf` filter, so changing that message breaks banning silently.
+- Every page calls `authenticate()` from `app/autenthicator.py` before querying anything; a new page must too, since Streamlit serves each page at its own URL. It writes form logins to `log/app_logins.log` (path relative to `app/`) with the client IP from the last `X-Forwarded-For` header, the one the Pi's haproxy adds. On the Pi, fail2ban's `sports-login` jail (`/etc/fail2ban/jail.local`) bans IPs from `Failed login from <ip>` lines, so changing that message breaks banning silently.
 - `app/utils/__init__.py` creates a module-level `db`; pages query it inline at module level and filter with pandas (no caching layer). Strava pages read `strava.activities`/`activities_curated`; stride, volume and activity analysis pages read `garmin.lap_enriched`.
 - `app/utils/names.py` maps Strava types to French sport labels; "Renfo" is further filtered by activity name (`hiit`/`renfo`).
 
@@ -72,5 +72,5 @@ cd app && streamlit run 📈_Accueil.py
 ## Conventions
 
 - Code, comments, logs and commit messages in English; UI strings, page titles and push notification bodies in French. Emoji only in user-facing strings and page filenames.
-- Existing scripts use `print`; the author's standard (from the accountin repo) is argparse with config-path overrides, a `LOGGER` configured by `lib/logger.py` (copied from accountin), and no `main()` wrapper (see `garmin_login.py`). Apply it to new scripts and when touching old ones.
+- Existing scripts use `print`; the author's standard is argparse with config-path overrides, a `LOGGER` configured by `lib/logger.py`, and no `main()` wrapper (see `garmin_login.py`). Apply it to new scripts and when touching old ones.
 - Use `datetime.now(UTC)` for audit timestamps.
