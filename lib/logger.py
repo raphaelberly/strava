@@ -16,5 +16,3 @@ def configure_logging(level=logging.INFO):
     # Add formatter to handler, and handler to root logger
     handler_sh.setFormatter(formatter)
     root_logger.addHandler(handler_sh)
-    # Suppress verbose logs from paramiko (SSH library)
-    logging.getLogger('paramiko').setLevel(logging.WARNING)
