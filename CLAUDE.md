@@ -8,9 +8,10 @@ Personal sports-data project: cron-style scripts pull activities from Strava and
 
 ## Commands
 
-All root scripts read `conf/*.yaml` via relative paths, so run them from the repo root:
+All root scripts read `conf/*.yaml` via relative paths, so run them from the repo root. Locally, open the SSH tunnel to the Pi's Postgres first (`Host pi-db` in `~/.ssh/config`, documented in `conf/secrets.yaml`):
 
 ```bash
+ssh -fN pi-db                        # Locally only: the Pi's Postgres on localhost:5433
 pip install -r app/requirements.txt   # scripts and app; requirements.txt alone covers the scripts
 python insert_activities.py          # Strava -> strava.activities (upsert)
 python insert_garmin_activities.py   # Garmin running activities + laps -> garmin.activity / garmin.lap
@@ -30,7 +31,7 @@ cd app && streamlit run 📈_Accueil.py
 
 `conf/` holds YAML files with real credentials. Never print, cat or commit them.
 
-- `conf/secrets.yaml` (gitignored): `db` (kwargs for `Database`, including optional SSH tunnel fields `remote_host`/`remote_port`/`remote_username`/`local_port`), `strava` (OAuth refresh-token credentials), `push` (Pushover `user_key`/`api_token`), `garmin` (`token_store` only: `garmin_login.py` prompts for the Garmin credentials so they are never stored).
+- `conf/secrets.yaml` (gitignored): `db` (kwargs for `Database`: `localhost:5433` locally, the `pi-db` tunnel's end, and `localhost:5432` on the Pi), `strava` (OAuth refresh-token credentials), `push` (Pushover `user_key`/`api_token`), `garmin` (`token_store` only: `garmin_login.py` prompts for the Garmin credentials so they are never stored).
 - `conf/conf.yaml`: `columns` maps each `strava.activities` column to a dotted path in the Strava API payload (e.g. `polyline: map.summary_polyline`). `insert_activities.py` walks these paths, so adding a Strava column means adding it here and in the table.
 - `conf/garmin.yaml`: `activity` and `lap` map DB columns to Garmin payload keys (flat, not dotted).
 - `app/conf/accounts.yaml` (gitignored): `streamlit_authenticator` credentials and cookie settings. Same user and bcrypt-hashed password as accountin's copy, but its own cookie `name`/`key`.
@@ -39,7 +40,7 @@ cd app && streamlit run 📈_Accueil.py
 
 ## Architecture
 
-- `lib/database.py`: `get_conn` context manager (optionally through an `sshtunnel` forwarder) and a flat `Database` class with `run_query` (returns a DataFrame), `insert`, `upsert(constraint_name=...)` and `last_activity_timestamp`. Queries are built as f-string / `.format()` SQL with `'` escaped and `'None'` replaced by `NULL`; parameterized queries are deliberately not used. `get_conn` and `lib/push.py` are copied by hand across the author's other repos (accountin, journal): keep them in sync rather than refactoring one copy.
+- `lib/database.py`: `get_conn` context manager (a plain psycopg2 connection: the SSH tunnel used locally is OpenSSH's, configured outside the code) and a flat `Database` class with `run_query` (returns a DataFrame), `insert`, `upsert(constraint_name=...)` and `last_activity_timestamp`. Queries are built as f-string / `.format()` SQL with `'` escaped and `'None'` replaced by `NULL`; parameterized queries are deliberately not used. `get_conn` and `lib/push.py` are copied by hand across the author's other repos (accountin, journal): keep them in sync rather than refactoring one copy.
 - `lib/strava.py`: thin wrapper over the Strava REST API, one method per endpoint returning raw JSON and raising on HTTP errors.
 - `lib/resources/*.sql`: schema DDL for `strava` and `garmin` schemas, including the views the app reads (`strava.activities_curated`, `garmin.activity_enriched`, `garmin.lap_enriched`). Apply changes manually; there is no migration tool.
 - The `Database` schema is set per instance: Strava code uses `secrets['db']['schema']`, the Garmin script overrides it to `garmin`.

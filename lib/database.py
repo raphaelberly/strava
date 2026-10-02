@@ -6,42 +6,23 @@ from typing import Optional
 
 import pandas as pd
 import psycopg2
-from sshtunnel import SSHTunnelForwarder
 
 LOGGER = logging.getLogger(__name__)
 LOCAL_DIR = path.dirname(__file__)
 
 
 @contextmanager
-def get_conn(host, port, user, password, database, remote_host=None, remote_port=None, remote_username=None,
-             local_port=None):
-    _credentials = {'host': 'localhost', 'user': user, 'password': password, 'database': database}
-    if remote_host is not None:
-        assert remote_port is not None and remote_username is not None
-        with SSHTunnelForwarder(
-                # The private key must be saved in the computer's keychain: ssh-add -K ~/.ssh/[your-private-key]
-                ssh_address_or_host=(remote_host, remote_port),
-                ssh_username=remote_username,
-                remote_bind_address=(host, port),
-                local_bind_address=('localhost', local_port or 0),  # Use 0 for auto-assignment if not specified
-                host_pkey_directories=[],
-        ) as tunnel:
-            actual_local_port = tunnel.local_bind_address[1]
-            with psycopg2.connect(port=actual_local_port, **_credentials) as conn:
-                yield conn
-    else:
-        with psycopg2.connect(port=port, **_credentials) as conn:
-            yield conn
+def get_conn(host, port, user, password, database):
+    # Run locally, host and port are those of the `pi-db` SSH tunnel from ~/.ssh/config (see conf/secrets.yaml)
+    with psycopg2.connect(host=host, port=port, user=user, password=password, database=database) as conn:
+        yield conn
 
 
 class Database(object):
 
-    def __init__(self, host, port, user, password, database, schema, remote_host=None, remote_port=None,
-                 remote_username=None, local_port=None):
+    def __init__(self, host, port, user, password, database, schema):
         self.schema = schema
-        self._credentials = {'host': host, 'port': port, 'user': user, 'password': password, 'database': database,
-                             'remote_host': remote_host, 'remote_port': remote_port, 'remote_username': remote_username,
-                             'local_port': local_port}
+        self._credentials = {'host': host, 'port': port, 'user': user, 'password': password, 'database': database}
 
     @staticmethod
     def _execute(query: str, conn):
