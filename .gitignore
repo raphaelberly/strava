@@ -9,3 +9,6 @@ app/conf/accounts.yaml
 
 # Logs (cron scripts, app logins)
 log/
+
+# Garmin tokens, when secrets.yaml puts the token store inside the repo (as on the Pi)
+.garminconnect/
