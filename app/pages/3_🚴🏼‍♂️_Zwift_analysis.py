@@ -4,7 +4,11 @@ import numpy as np
 import plotly.express as px
 import streamlit as st
 
+from autenthicator import authenticate
 from utils import db
+
+# Make sure the user is logged in
+authenticate()
 
 
 st.title('🚴🏼‍♂️ Zwift analysis')

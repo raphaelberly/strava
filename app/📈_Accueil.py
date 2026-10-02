@@ -1,6 +1,7 @@
 import pandas as pd
 import streamlit as st
 
+from autenthicator import authenticate
 from utils import db
 
 # First streamlit command
@@ -8,6 +9,8 @@ st.set_page_config(
     page_title="Health & Sports",
     page_icon="📈",
 )
+# Make sure the user is logged in
+authenticate()
 
 st.title(f'Bienvenue ! 👋🏻')
 

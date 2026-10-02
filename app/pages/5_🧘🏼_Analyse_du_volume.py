@@ -2,7 +2,11 @@ import numpy as np
 import plotly.graph_objs as go
 import streamlit as st
 
+from autenthicator import authenticate
 from utils import db
+
+# Make sure the user is logged in
+authenticate()
 
 
 def normalize_text(text: str) -> str:

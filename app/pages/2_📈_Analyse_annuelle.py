@@ -3,8 +3,12 @@ from datetime import datetime, date, timedelta
 import streamlit as st
 import plotly.express as px
 
+from autenthicator import authenticate
 from utils import db
 from utils.names import NAMES
+
+# Make sure the user is logged in
+authenticate()
 
 st.title('Analyse annuelle')
 

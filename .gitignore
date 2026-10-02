@@ -5,3 +5,7 @@ tmp
 __pycache__/
 cache/
 .python-version
+app/conf/accounts.yaml
+
+# Logs (cron scripts, app logins)
+log/

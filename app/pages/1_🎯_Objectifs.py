@@ -3,7 +3,11 @@ import datetime
 import streamlit as st
 from yaml import safe_load
 
+from autenthicator import authenticate
 from utils import db
+
+# Make sure the user is logged in
+authenticate()
 
 YEAR = 2026
 MONTH = datetime.date.today().month

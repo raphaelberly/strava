@@ -5,8 +5,12 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
+from autenthicator import authenticate
 from utils import db
 from utils.names import NAMES
+
+# Make sure the user is logged in
+authenticate()
 
 st.title('Analyse globale')
 
