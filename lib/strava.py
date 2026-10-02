@@ -37,3 +37,10 @@ class Strava(object):
     def activity(self, activity_id):
         header = {'Authorization': f'Bearer {self._access_token}'}
         return requests.get(self.activity_url.format(activity_id=activity_id), headers=header).json()
+
+    def segments(self, min_lat, min_lon, max_lat, max_lon) -> list:
+        bounds = f"{min_lat},{min_lon},{max_lat},{max_lon}"
+        header = {'Authorization': f'Bearer {self._access_token}'}
+        url = f"https://www.strava.com/api/v3/segments/explore?bounds={bounds}&activity_type=running"
+        response = requests.get(url, headers=header)
+        return response.json().get('segments', [])

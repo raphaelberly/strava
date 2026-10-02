@@ -10,3 +10,7 @@ sshtunnel
 tqdm
 git+https://github.com/Wyattjoh/pushover
 statsmodels
+folium
+matplotlib
+geopandas
+osmnx
