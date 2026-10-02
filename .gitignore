@@ -1,2 +1,7 @@
 conf/secrets.yaml
 tmp
+.idea/
+.DS_Store
+__pycache__/
+cache/
+.python-version
