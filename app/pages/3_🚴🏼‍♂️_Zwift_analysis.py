@@ -39,7 +39,6 @@ df['Date'] = df.start_date
 
 st.dataframe(
     data=df[['Date', 'Base de FTP (w)', "Mesure d'effort", 'Puissance (w)']].set_index('Date').sort_index(),
-    use_container_width=True,
 )
 
 fig = px.scatter(df, x='Date', y="Mesure d'effort",

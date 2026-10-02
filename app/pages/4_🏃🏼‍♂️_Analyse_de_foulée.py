@@ -119,4 +119,4 @@ if 'pace' in x:
     )
 
 fig = go.Figure(data=[trace], layout=layout)
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig)

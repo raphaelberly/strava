@@ -87,4 +87,4 @@ fig.update_layout(
     xaxis_title=None,
     yaxis_title=None,
 )
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig)

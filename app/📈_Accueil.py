@@ -2,7 +2,6 @@ import pandas as pd
 import streamlit as st
 
 from utils import db
-from utils.navigation import switch_page
 
 # First streamlit command
 st.set_page_config(
@@ -15,19 +14,19 @@ st.title(f'Bienvenue ! 👋🏻')
 st.subheader('Choisir un outil')
 
 if st.button('🎯 Objectifs'):
-    switch_page('objectifs')
+    st.switch_page('pages/1_🎯_Objectifs.py')
 
 if st.button('📈 Analyse annuelle'):
-    switch_page('analyse annuelle')
+    st.switch_page('pages/2_📈_Analyse_annuelle.py')
 
 if st.button('📊 Analyse globale'):
-    switch_page('analyse globale')
+    st.switch_page('pages/2_📊_Analyse_globale.py')
 
 if st.button('🏃🏼‍♂️ Analyse de foulée'):
-    switch_page('analyse de foulée')
+    st.switch_page('pages/4_🏃🏼‍♂️_Analyse_de_foulée.py')
 
 if st.button('🧘🏼 Analyse de volume'):
-    switch_page('analyse du volume')
+    st.switch_page('pages/5_🧘🏼_Analyse_du_volume.py')
 
 
 st.subheader('Dernières activités')
@@ -62,10 +61,9 @@ st.dataframe(
         'url': 'https://www.strava.com/activities/' + tmp.id.astype(str),
     }).head(st.session_state.nb_activities),
     hide_index=True,
-    use_container_width=True,
     column_config={'url': st.column_config.LinkColumn("URL Strava")},
 )
-st.button(label=f'Voir {"plus" if st.session_state.nb_activities == 5 else "moins"}', on_click=switch_df_size())
+st.button(label=f'Voir {"plus" if st.session_state.nb_activities == 5 else "moins"}', on_click=switch_df_size)
 
 
 st.subheader('Rafraîchir')

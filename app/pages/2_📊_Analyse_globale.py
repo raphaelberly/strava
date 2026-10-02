@@ -144,4 +144,4 @@ for idx, row in df_sport_agg.iterrows():
         )
 
 # Display the chart
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig)

@@ -65,4 +65,4 @@ fig.update_layout(
     xaxis_title='Lap index',
     yaxis_title=y.capitalize(),
 )
-st.plotly_chart(fig, use_container_width=True)
+st.plotly_chart(fig)
