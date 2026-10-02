@@ -1,0 +1,9 @@
+# The app imports lib/, so it needs the scripts' dependencies too
+-r ../requirements.txt
+
+numpy==2.2.6
+plotly==7.1.0
+# Used by plotly express for the OLS trendline on the Activity analysis page
+statsmodels==0.15.0
+streamlit==1.64.0
+streamlit-authenticator==0.4.2

@@ -48,7 +48,8 @@ df_sport_agg = df_sport.groupby(['Année'])[METRIC].sum().reset_index(drop=False
 current_year = str(datetime.now().year)
 current_day_of_year = datetime.now().timetuple().tm_yday
 
-df_sport_agg['projected_value'] = df_sport_agg[METRIC]
+# Float, as the projection of a count metric (e.g. number of activities) is not a whole number
+df_sport_agg['projected_value'] = df_sport_agg[METRIC].astype(float)
 if current_year in df_sport_agg['Année'].values:
     current_value = df_sport_agg.loc[df_sport_agg['Année'] == current_year, METRIC].values[0]
     projected_value = current_value * (365 / current_day_of_year)

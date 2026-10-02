@@ -28,6 +28,8 @@ laps['power_to_heartrate'] = laps['average_power'].divide(laps['average_heartrat
 laps['speed_to_heartrate'] = laps['average_speed'].divide(laps['average_heartrate'])
 
 activities = laps.sort_values('activity_date', ascending=False)[['activity_id', 'activity_name']].drop_duplicates()
+# Some Garmin activities have no name, which pandas reads as NaN
+activities['activity_name'] = activities['activity_name'].fillna('Sans nom')
 
 activity_id = st.selectbox('Activity', options=activities.activity_id, format_func=lambda n: dict(zip(activities.activity_id, activities.activity_name))[n])
 
