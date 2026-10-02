@@ -1,0 +1,11 @@
+# Read from the working directory, so it applies when the app runs from app/ (as on the Pi)
+
+[client]
+# Exception messages and tracebacks (SQL, file paths) stay in the server log instead of the browser.
+# Locally, override with: streamlit run 📈_Accueil.py --client.showErrorDetails=full
+showErrorDetails = "none"
+# "auto" shows developer options (rerun, clear cache) to localhost, and haproxy connects from localhost
+toolbarMode = "viewer"
+
+[browser]
+gatherUsageStats = false
