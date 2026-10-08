@@ -4,19 +4,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Overview
 
-Personal sports-data project: cron-style scripts pull activities from Strava and Garmin Connect into PostgreSQL, and a Streamlit app (French UI) analyses them. No tests, no linter, no build step. Python 3.12 locally and 3.11 on the Raspberry Pi that runs it (pyenv, local `.python-version` is gitignored). Dependencies are pinned: `requirements.txt` for the scripts and `lib/`, `app/requirements.txt` (which pulls in the former with `-r`) for the app.
+Personal sports-data project: cron-style scripts pull activities from Strava and Garmin Connect into PostgreSQL, and a Streamlit app (French UI) analyses them. No tests, no linter, no build step.
+
+## Environment
+
+Dependencies are managed with uv: `pyproject.toml` lists them, `uv.lock` pins every package (indirect ones and the pushover git commit included), and `.python-version` pins Python 3.14. `uv sync` creates or updates `.venv` to match the lock exactly; to upgrade, `uv lock --upgrade` then `uv sync`. The scripts, `lib/` and the app share that single environment.
+
+The lock covers both macOS and the Pi (Linux aarch64). Before adding or upgrading a package, check that it ships a Linux aarch64 wheel for the locked Python, or the Pi would have to build it from source.
 
 ## Commands
 
-All root scripts read `conf/*.yaml` via relative paths, so run them from the repo root. Locally, open the SSH tunnel to the Pi's Postgres first (`Host pi-db` in `~/.ssh/config`, documented in `conf/secrets.yaml`):
+All root scripts read `conf/*.yaml` via relative paths, so run them from the repo root. The commands below assume `.venv` is activated (`source .venv/bin/activate`), otherwise prefix them with `uv run`. Locally, open the SSH tunnel to the Pi's Postgres first (`Host pi-db` in `~/.ssh/config`, documented in `conf/secrets.yaml`):
 
 ```bash
 ssh -fN pi-db                        # Locally only: the Pi's Postgres on localhost:5433
-pip install -r app/requirements.txt   # scripts and app; requirements.txt alone covers the scripts
+uv sync                              # Create or update .venv from uv.lock
 python insert_activities.py          # Strava -> strava.activities (upsert)
 python insert_garmin_activities.py   # Garmin running activities + laps -> garmin.activity / garmin.lap
 python check_activities.py           # Push alert for likely duplicate Strava activities in the last month
-python garmin_login.py               # When Garmin tokens expire: prompts for email/password/MFA, dumps tokens to garmin.token_store
+python garmin_login.py               # When Garmin tokens expire: prompts for email/password/MFA, saves garmin_tokens.json in garmin.token_store
 ```
 
 The Streamlit app must be run from inside `app/`, because `app/utils/__init__.py` opens `../conf/secrets.yaml` and pages import `from utils import ...`:
@@ -60,9 +66,9 @@ cd app && streamlit run 📈_Accueil.py
 
 ### Deployment (Raspberry Pi)
 
-- The repo is cloned in `/home/pi/strava` and runs from the `stravaenv3.11.6` pyenv virtualenv, for both cron and the app. Python 3.11 is why `garminconnect` stays on 0.2.x (0.3.3+ needs 3.12 and replaces the garth tokens).
-- Cron runs `insert_activities.py`, `check_activities.py` and `insert_garmin_activities.py` hourly from 8:00 to 23:00, logging to `log/<script>.log`.
-- Supervisor's `healthnsports` program serves the app on `127.0.0.1:8091`; haproxy exposes it as `sports.rberly.ovh`, with per-IP rate limits shared with the other apps.
+- The repo is cloned in `/home/pi/strava` and runs from its `.venv`, built with `uv sync --frozen`, for both cron and the app. A pulled change to `uv.lock` is not installed until `uv sync --frozen` runs on the Pi.
+- Cron runs `insert_activities.py`, `check_activities.py` and `insert_garmin_activities.py` hourly from 8:00 to 23:00 with `.venv/bin/python`, logging to `log/<script>.log`.
+- Supervisor's `strava` program serves the app with `.venv/bin/streamlit` on `127.0.0.1:8091`; haproxy exposes it as `strava.rberly.ovh`, with per-IP rate limits shared with the other apps.
 
 ### Other
 

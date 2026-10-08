@@ -1,0 +1,37 @@
+[project]
+name = "strava"
+version = "0.1.0"
+description = "Sports data tracker: cron scripts pulling Strava and Garmin activities into Postgres, and a Streamlit app reading them"
+requires-python = ">=3.14"
+# The scripts, lib/ and the Streamlit app share a single environment, both locally and on the Pi.
+# Exact versions live in uv.lock, so that the Pi gets exactly what was tested here.
+dependencies = [
+    # pushover is the Wyattjoh fork (see [tool.uv.sources]), NOT the unrelated PyPI package of the same name:
+    # lib/push.py needs its Pushover class
+    "pushover",
+    # 0.3 dropped garth: tokens saved by 0.2.x cannot be read, garmin_login.py has to be run again
+    "garminconnect>=0.3.17",
+    "numpy>=2.5.3",
+    "pandas>=3.0.6",
+    "plotly>=7.1.0",
+    "psycopg2-binary>=2.9.13",
+    "pyyaml>=6.0.3",
+    "requests>=2.34.2",
+    # Used by plotly express for the OLS trendline on the Activity analysis page
+    "statsmodels>=0.15.0",
+    "streamlit>=1.65.0",
+    "streamlit-authenticator>=0.4.2",
+    "tqdm>=4.70.1",
+]
+
+[tool.uv]
+# Scripts run from the checkout, there is nothing to build or install
+package = false
+# Only lock for the two machines running this: an Apple Silicon Mac and the Pi (64-bit ARM Linux)
+environments = [
+    "sys_platform == 'darwin' and platform_machine == 'arm64'",
+    "sys_platform == 'linux' and platform_machine == 'aarch64'",
+]
+
+[tool.uv.sources]
+pushover = { git = "https://github.com/Wyattjoh/pushover" }

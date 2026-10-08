@@ -4,7 +4,7 @@ tmp
 .DS_Store
 __pycache__/
 cache/
-.python-version
+.venv/
 app/conf/accounts.yaml
 
 # Logs (cron scripts, app logins)

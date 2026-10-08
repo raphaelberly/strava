@@ -28,9 +28,6 @@ garmin = garminconnect.Garmin(
 )
 garmin.login()
 
-# Save tokens where insert_garmin_activities.py reads them, readable by the owner only
-garmin.garth.dump(token_store)
-os.chmod(token_store, 0o700)
-for file_name in os.listdir(token_store):
-    os.chmod(os.path.join(token_store, file_name), 0o600)
+# Save tokens where insert_garmin_activities.py reads them (dump makes them readable by the owner only)
+garmin.client.dump(token_store)
 LOGGER.info(f'Saved Garmin tokens to {token_store}')
