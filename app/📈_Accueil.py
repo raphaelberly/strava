@@ -6,7 +6,7 @@ from utils import db
 
 # First streamlit command
 st.set_page_config(
-    page_title="Health & Sports",
+    page_title="Strava",
     page_icon="📈",
 )
 # Make sure the user is logged in
