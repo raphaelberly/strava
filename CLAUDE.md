@@ -68,7 +68,7 @@ cd app && streamlit run 📈_Accueil.py
 
 - The repo is cloned in `/home/pi/strava` and runs from its `.venv`, built with `uv sync --frozen`, for both cron and the app. A pulled change to `uv.lock` is not installed until `uv sync --frozen` runs on the Pi.
 - Cron runs `insert_activities.py`, `check_activities.py` and `insert_garmin_activities.py` hourly from 8:00 to 23:00 with `.venv/bin/python`, logging to `log/<script>.log`.
-- Supervisor's `strava` program serves the app with `.venv/bin/streamlit` on `127.0.0.1:8091`; haproxy exposes it as `strava.rberly.ovh`, with per-IP rate limits shared with the other apps.
+- Supervisor's `sports` program serves the app with `.venv/bin/streamlit` on `127.0.0.1:8091`; haproxy exposes it as `sports.rberly.ovh`, with per-IP rate limits shared with the other apps.
 
 ### Other
 
