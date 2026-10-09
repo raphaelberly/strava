@@ -1,5 +1,7 @@
 # CLAUDE.md
 
+**Before writing, changing or reviewing code here, load the `anthropic-skills:raphael-python-style` skill.** It holds the house style and the rule to keep diffs minimal.
+
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Overview
