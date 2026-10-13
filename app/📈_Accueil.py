@@ -31,6 +31,9 @@ if st.button('🏃🏼‍♂️ Analyse de foulée'):
 if st.button('🧘🏼 Analyse de volume'):
     st.switch_page('pages/5_🧘🏼_Analyse_du_volume.py')
 
+if st.button('🥾 Sentiers'):
+    st.switch_page('pages/7_🥾_Sentiers.py')
+
 
 st.subheader('Dernières activités')
 

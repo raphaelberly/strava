@@ -114,7 +114,8 @@ if __name__ == '__main__':
             })
 
     # Add the park trails missing from OSM
-    missing = park.assign(geometry=park.difference(osm.buffer(conf['tolerance']).union_all())).explode(index_parts=False)
+    osm_buffer = osm.buffer(conf['tolerance']).union_all()
+    missing = park.assign(geometry=park.difference(osm_buffer)).explode(index_parts=False)
     for trail in missing[missing.length >= conf['min_park_length']].itertuples():
         trails.append({'source': 'park', 'balisage': trail.balisage, 'etiq_num': trail.etiq_num,
                        'geometry': trail.geometry})

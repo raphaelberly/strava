@@ -66,7 +66,8 @@ def trail_coverage(db: Database, zone: str, conf: dict) -> gpd.GeoDataFrame:
     tracks = tracks[tracks.intersects(polygon)].to_crs(crs).reset_index(drop=True)
 
     # Activities that went along each piece
-    pairs = match_pieces(pieces, tracks.geometry, **{k: v for k, v in conf['coverage'].items() if k != 'activity_types'})
+    coverage = conf['coverage']
+    pairs = match_pieces(pieces, tracks.geometry, coverage['tolerance'], coverage['min_overlap'], coverage['min_span'])
     pairs['start_datetime_utc'] = tracks.start_datetime_utc[pairs.line].values
     stats = pairs.groupby(level=0).agg(activities=('line', 'nunique'), first_datetime_utc=('start_datetime_utc', 'min'),
                                        last_datetime_utc=('start_datetime_utc', 'max'))
