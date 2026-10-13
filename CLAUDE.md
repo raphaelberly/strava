@@ -25,6 +25,7 @@ python insert_activities.py          # Strava -> strava.activities (upsert)
 python insert_garmin_activities.py   # Garmin running activities + laps -> garmin.activity / garmin.lap
 python check_activities.py           # Push alert for likely duplicate Strava activities in the last month
 python garmin_login.py               # When Garmin tokens expire: prompts for email/password/MFA, saves garmin_tokens.json in garmin.token_store
+python insert_trails.py -z marseilleveyre  # Rebuild a zone's trail network in trails.trail (manual, --dry-run to only log it)
 ```
 
 The Streamlit app must be run from inside `app/`, because `app/utils/__init__.py` opens `../conf/secrets.yaml` and pages import `from utils import ...`:
@@ -42,6 +43,7 @@ cd app && streamlit run 📈_Accueil.py
 - `conf/secrets.yaml` (gitignored): `db` (kwargs for `Database`: `localhost:5433` locally, the `pi-db` tunnel's end, and `localhost:5432` on the Pi), `strava` (OAuth refresh-token credentials), `push` (Pushover `user_key`/`api_token`), `garmin` (`token_store` only: `garmin_login.py` prompts for the Garmin credentials so they are never stored).
 - `conf/conf.yaml`: `columns` maps each `strava.activities` column to a dotted path in the Strava API payload (e.g. `polyline: map.summary_polyline`). `insert_activities.py` walks these paths, so adding a Strava column means adding it here and in the table.
 - `conf/garmin.yaml`: `activity` and `lap` map DB columns to Garmin payload keys (flat, not dotted).
+- `conf/trails.yaml`: zones (polygons of `[lon, lat]` points) the trail network is built for, Overpass instances, the Parc national's marked-trails export URL and the matching thresholds.
 - `app/conf/accounts.yaml` (gitignored): `streamlit_authenticator` credentials (bcrypt-hashed passwords) and cookie settings.
 - `app/.streamlit/config.toml`: no error details in the browser, viewer-only toolbar (haproxy connects from localhost, so the default `auto` mode would show developer options to everyone), no usage stats.
 - `app/conf/objectives.yaml`: yearly objectives for the Objectifs page (sports matched by substring of lowercased `type`, `obj_type` of `dist`/`count`/`elev`, optional `name_pattern` regex and `filter_dist` in km).
@@ -50,7 +52,7 @@ cd app && streamlit run 📈_Accueil.py
 
 - `lib/database.py`: `get_conn` context manager (a plain psycopg2 connection: the SSH tunnel used locally is OpenSSH's, configured outside the code) and a flat `Database` class with `run_query` (returns a DataFrame), `insert`, `upsert(constraint_name=...)` and `last_activity_timestamp`. Queries are built as f-string / `.format()` SQL with `'` escaped and `'None'` replaced by `NULL`; parameterized queries are deliberately not used.
 - `lib/strava.py`: thin wrapper over the Strava REST API, one method per endpoint returning raw JSON and raising on HTTP errors.
-- `lib/resources/*.sql`: schema DDL for `strava` and `garmin` schemas, including the views the app reads (`strava.activities_curated`, `garmin.activity_enriched`, `garmin.lap_enriched`). Apply changes manually; there is no migration tool.
+- `lib/resources/*.sql`: schema DDL for `strava`, `garmin` and `trails` schemas, including the views the app reads (`strava.activities_curated`, `garmin.activity_enriched`, `garmin.lap_enriched`). Apply changes manually; there is no migration tool.
 - The `Database` schema is set per instance: Strava code uses `secrets['db']['schema']`, the Garmin script overrides it to `garmin`.
 
 ### Ingestion behaviour
@@ -72,10 +74,14 @@ cd app && streamlit run 📈_Accueil.py
 - Cron runs `insert_activities.py`, `check_activities.py` and `insert_garmin_activities.py` hourly from 8:00 to 23:00 with `.venv/bin/python`, logging to `log/<script>.log`.
 - Supervisor's `sports` program serves the app with `.venv/bin/streamlit` on `127.0.0.1:8091`; haproxy exposes it as `sports.rberly.ovh`, with per-IP rate limits shared with the other apps.
 
+### Trail network
+
+`insert_trails.py` builds the trail network of a zone from OSM ways (fetched from Overpass, trying each instance in `conf/trails.yaml` in turn, three times over, since they often answer 504) and the Parc national des Calanques' marked trails (Métropole Aix-Marseille-Provence open data). The park data is the reference for marking (`balisage` colours, `etiq_num`), OSM for geometry: OSM ways are cut into 20 m pieces, each piece takes the marking of the park trail it runs along, and park trails missing from OSM are added with `source = 'park'`. Each run deletes and reinserts the zone's rows of `trails.trail` in one transaction (COPY), so `trail_index` is not stable across runs. Geometries are GeoJSON text in WGS84: the Pi's Postgres has no PostGIS, geometry work happens in Python with geopandas/shapely.
+
 ### Other
 
 - `tmp/`: scratch scripts and archived previous-year objectives, not imported by anything.
-- The `trails` branch holds a paused experiment matching OSM trails in the Calanques to Strava segments (osmnx, geopandas). `cache/` (gitignored) is its osmnx HTTP cache.
+- The `trails` branch holds an earlier, paused experiment matching OSM trails in the Calanques to Strava segments (osmnx). `cache/` (gitignored) is its osmnx HTTP cache.
 
 ## Conventions
 

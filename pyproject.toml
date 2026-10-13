@@ -11,6 +11,8 @@ dependencies = [
     "pushover",
     # 0.3 dropped garth: tokens saved by 0.2.x cannot be read, garmin_login.py has to be run again
     "garminconnect>=0.3.17",
+    # Builds the trail network in insert_trails.py
+    "geopandas>=1.2.0",
     "numpy>=2.5.3",
     "pandas>=3.0.6",
     "plotly>=7.1.0",

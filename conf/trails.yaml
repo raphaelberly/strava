@@ -1,0 +1,59 @@
+# Trail network built by insert_trails.py: OSM paths, marked by the Parc national des Calanques where it marks them
+
+# OSM ways kept as trails, fetched from Overpass. Instances often answer 504 when busy, so they are tried in turn.
+# The OSM API's map call is no fallback: it refuses areas of more than 50,000 nodes.
+overpass_urls:
+  - https://overpass-api.de/api/interpreter
+  - https://overpass.kumi.systems/api/interpreter
+highway: [path, footway, track, steps, bridleway, cycleway]
+
+# Marked trails of the Parc national des Calanques (balisage, etiq_num), on the Métropole's open data portal
+park_url: https://data.ampmetropole.fr/api/explore/v2.1/catalog/datasets/fr-sentiers-balises-sur-le-parc-national-des-calanques/exports/geojson
+
+# Matching, in metres. An OSM piece is marked like a park trail when at least half of it lies within `tolerance` of it,
+# and when it runs along it: its projection on the park trail is at least `min_span` of its length (0.7 is about 45°).
+# Unmarked gaps up to `max_gap` between two pieces with the same marking get it too.
+# Park trails further than `tolerance` from any OSM way are added as is when longer than `min_park_length`.
+piece_length: 20
+tolerance: 12
+min_span: 0.7
+max_gap: 60
+min_park_length: 30
+
+# Zones the network is built for, as polygons of (lon, lat) points
+zones:
+  # Drawn with https://www.keene.edu/campus/maps/tool/
+  marseilleveyre:
+    - [5.3972580, 43.2077929]
+    - [5.4035541, 43.2158312]
+    - [5.4066771, 43.2172421]
+    - [5.4050257, 43.2208042]
+    - [5.3960657, 43.2298034]
+    - [5.3980870, 43.2356715]
+    - [5.3858479, 43.2365669]
+    - [5.3866594, 43.2348639]
+    - [5.3855548, 43.2328185]
+    - [5.3818907, 43.2310732]
+    - [5.3804925, 43.2266032]
+    - [5.3788414, 43.2253853]
+    - [5.3744430, 43.2275809]
+    - [5.3707077, 43.2271064]
+    - [5.3682018, 43.2282935]
+    - [5.3658158, 43.2271114]
+    - [5.3637129, 43.2277368]
+    - [5.3611230, 43.2310688]
+    - [5.3566167, 43.2306449]
+    - [5.3532564, 43.2271955]
+    - [5.3472238, 43.2245628]
+    - [5.3460100, 43.2210584]
+    - [5.3473629, 43.2161735]
+    - [5.3499494, 43.2151176]
+    - [5.3498271, 43.2134514]
+    - [5.3446873, 43.2145093]
+    - [5.3427697, 43.2174135]
+    - [5.3346106, 43.2147142]
+    - [5.3474018, 43.2084765]
+    - [5.3521665, 43.2127833]
+    - [5.3547708, 43.2135737]
+    - [5.3553627, 43.2129211]
+    - [5.3510300, 43.2066459]
