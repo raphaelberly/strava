@@ -10,11 +10,12 @@ import pandas as pd
 import requests
 import shapely
 import yaml
-from shapely.geometry import LineString, Point, Polygon
+from shapely.geometry import LineString, Polygon
 from shapely.ops import substring
 
 from lib.database import get_conn
 from lib.logger import configure_logging
+from lib.trails import cut_pieces, match_pieces
 
 # Configure logging
 configure_logging(level=logging.INFO)
@@ -84,33 +85,16 @@ if __name__ == '__main__':
                       .to_crs(crs), area)
     LOGGER.info(f'Found {len(park)} park marked trails, {park.length.sum() / 1000:.1f} km')
 
-    # Cut OSM ways into pieces of about piece_length
-    pieces = []
-    for way in osm.itertuples():
-        n = max(1, round(way.geometry.length / conf['piece_length']))
-        for i in range(n):
-            start, end = way.geometry.length * i / n, way.geometry.length * (i + 1) / n
-            pieces.append({'way': way.Index, 'start': start, 'end': end, 'geometry': substring(way.geometry, start, end)})
-    pieces = gpd.GeoDataFrame(pieces, crs=crs)
-
-    # Mark each piece like the park trail it overlaps most, if that covers at least half of it
-    park_buffers = park.buffer(conf['tolerance'])
-    candidates = gpd.sjoin(pieces, gpd.GeoDataFrame(park[['balisage', 'etiq_num']], geometry=park_buffers),
-                           predicate='intersects')
-    candidates['overlap'] = [pieces.geometry[i].intersection(park_buffers[j]).length
-                             for i, j in zip(candidates.index, candidates.index_right)]
-    # and if it runs along it: the first metres of a way branching off a marked trail lie within tolerance of it too
-    candidates['span'] = [abs(park.geometry[j].project(Point(pieces.geometry[i].coords[0]))
-                              - park.geometry[j].project(Point(pieces.geometry[i].coords[-1])))
-                          for i, j in zip(candidates.index, candidates.index_right)]
-    best = candidates[(candidates.overlap >= candidates.length / 2)
-                      & (candidates.span >= conf['min_span'] * candidates.length)] \
+    # Mark each piece of OSM way like the park trail it runs along most
+    pieces = cut_pieces(osm.geometry, conf['piece_length'])
+    best = match_pieces(pieces, park.geometry, conf['tolerance'], 0.5, conf['min_span']) \
         .sort_values('overlap').groupby(level=0).tail(1)
-    pieces[['balisage', 'etiq_num']] = best[['balisage', 'etiq_num']].reindex(pieces.index).fillna('')
+    pieces[['balisage', 'etiq_num']] = park.loc[best.line, ['balisage', 'etiq_num']].set_index(best.index) \
+        .reindex(pieces.index).fillna('')
 
     # Merge back consecutive pieces of a way with the same marking
     trails = []
-    for way, way_pieces in groupby(pieces.itertuples(), key=lambda p: p.way):
+    for way, way_pieces in groupby(pieces.itertuples(), key=lambda p: p.line):
         runs = [[mark, list(run)] for mark, run in groupby(way_pieces, key=lambda p: (p.balisage, p.etiq_num))]
         # Mark short gaps between two runs with the same marking, left by switchbacks the park trail cuts through
         for k in range(1, len(runs) - 1):

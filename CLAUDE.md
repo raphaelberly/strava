@@ -52,6 +52,7 @@ cd app && streamlit run 📈_Accueil.py
 
 - `lib/database.py`: `get_conn` context manager (a plain psycopg2 connection: the SSH tunnel used locally is OpenSSH's, configured outside the code) and a flat `Database` class with `run_query` (returns a DataFrame), `insert`, `upsert(constraint_name=...)` and `last_activity_timestamp`. Queries are built as f-string / `.format()` SQL with `'` escaped and `'None'` replaced by `NULL`; parameterized queries are deliberately not used.
 - `lib/strava.py`: thin wrapper over the Strava REST API, one method per endpoint returning raw JSON and raising on HTTP errors.
+- `lib/trails.py`: geometry helpers shared by the trail network build and its coverage: `cut_pieces`, `match_pieces` (a piece matches a line it runs along, not one crossing or branching off it) and `trail_coverage`.
 - `lib/resources/*.sql`: schema DDL for `strava`, `garmin` and `trails` schemas, including the views the app reads (`strava.activities_curated`, `garmin.activity_enriched`, `garmin.lap_enriched`). Apply changes manually; there is no migration tool.
 - The `Database` schema is set per instance: Strava code uses `secrets['db']['schema']`, the Garmin script overrides it to `garmin`.
 
@@ -77,6 +78,8 @@ cd app && streamlit run 📈_Accueil.py
 ### Trail network
 
 `insert_trails.py` builds the trail network of a zone from OSM ways (fetched from Overpass, trying each instance in `conf/trails.yaml` in turn, three times over, since they often answer 504) and the Parc national des Calanques' marked trails (Métropole Aix-Marseille-Provence open data). The park data is the reference for marking (`balisage` colours, `etiq_num`), OSM for geometry: OSM ways are cut into 20 m pieces, each piece takes the marking of the park trail it runs along, and park trails missing from OSM are added with `source = 'park'`. Each run deletes and reinserts the zone's rows of `trails.trail` in one transaction (COPY), so `trail_index` is not stable across runs. Geometries are GeoJSON text in WGS84: the Pi's Postgres has no PostGIS, geometry work happens in Python with geopandas/shapely.
+
+`trail_coverage` computes on the fly which 20 m pieces of a zone's trails the foot activities went along, from the `summary_polyline` stored in `strava.activities` (within about 5 m of the full tracks; Strava crops the start and end inside privacy zones). Nothing is stored, so it stays right after a network rebuild.
 
 ### Other
 
