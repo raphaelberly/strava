@@ -55,7 +55,7 @@ try:
                 raw_activity['type'] = 'TrailRun'
         elif raw_activity['type'] == 'VirtualRide':
             raw_activity = strava.activity(raw_activity['id'])
-            ftp_search = re.search(r'base ftp (de )?(\d+) ?w', raw_activity['description'], re.IGNORECASE)
+            ftp_search = re.search(r'base ftp (de )?(\d+) ?w', raw_activity['description'] or '', re.IGNORECASE)
             if ftp_search:
                 raw_activity['ftp_base'] = ftp_search.group(2)
         if raw_activity['type'] in ['AlpineSki', 'Snowboard']:
