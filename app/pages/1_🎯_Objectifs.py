@@ -10,13 +10,11 @@ from utils.loader import fetch_activities_df
 authenticate()
 
 YEAR = 2026
-MONTH = datetime.date.today().month
 DOY = datetime.datetime.now().timetuple().tm_yday
 OBJECTIVES = safe_load(open('conf/objectives.yaml'))
 
 df = fetch_activities_df()
 df_year = df[df.start_datetime_utc.dt.year == YEAR]
-df_month = df_year[df_year.start_datetime_utc.dt.month == MONTH]
 
 
 def _display_objective(title: str, obj: str, current_total: str, current_progress: float, delta: str = None):
