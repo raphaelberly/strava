@@ -27,11 +27,15 @@ except Exception as e:
     push.send_message("Could not connect to Garmin", title='⚠️ Garmin Error')
     raise e
 
-start_date = date.fromtimestamp(db.last_activity_timestamp(table_name='activity')).isoformat()
+try:
+    start_date = date.fromtimestamp(db.last_activity_timestamp(table_name='activity')).isoformat()
+    activities = garmin.get_activities_by_date(start_date, date.today().isoformat())
+except Exception as e:
+    push.send_message("Could not fetch Garmin activities", title='⚠️ Garmin Error')
+    raise e
 
 # RUNNING
 i, j = 0, 0
-activities = garmin.get_activities_by_date(start_date, date.today().isoformat())
 
 # Read from oldest to newest, and show progress bar if more than one candidate activity
 activities_gen = tqdm(reversed(activities), total=len(activities)) if len(activities) > 1 else reversed(activities)

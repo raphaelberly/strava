@@ -30,7 +30,11 @@ WHERE a.type = a.lag_type
     AND a.date = a.lag_date
     AND date(date) >= date(current_date) - INTERVAL '1' MONTH
 """
-results = db.run_query(query)
+try:
+    results = db.run_query(query)
+except Exception as e:
+    push.send_message(message="Could not check Strava activities", title="⚠️ Strava Error")
+    raise e
 if len(results) > 0:
     print(f'{len(results)} potential duplicates found')
     for item in results.to_dict(orient="records"):
