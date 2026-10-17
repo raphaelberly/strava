@@ -58,15 +58,17 @@ CREATE TABLE garmin.lap (
 );
 
 CREATE OR REPLACE VIEW garmin.activity_enriched AS (
-    SELECT
+    SELECT DISTINCT ON (g.id)
         g.*,
         s.name
     FROM garmin.activity g
+    -- The Strava activity recorded at the same time, also when Garmin activities were merged into one on Strava
+    -- or its type was changed there
     LEFT JOIN strava.activities s
-        ON DATE(g.start_datetime_utc) = DATE(s.start_datetime_utc)
-        AND round(g.distance/1000) = round(s.distance/1000)
-        AND lower(s.type) LIKE '%run%'
-    ORDER BY start_datetime_utc DESC
+        ON (g.start_datetime_utc, make_interval(secs => g.elapsed_time))
+            OVERLAPS (s.start_datetime_utc, make_interval(secs => s.elapsed_time))
+    -- A single Strava activity per Garmin one: the closest start
+    ORDER BY g.id, abs(extract(epoch FROM s.start_datetime_utc - g.start_datetime_utc))
 );
 
 CREATE OR REPLACE VIEW garmin.lap_enriched AS (
