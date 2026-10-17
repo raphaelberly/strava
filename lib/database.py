@@ -14,8 +14,13 @@ LOCAL_DIR = path.dirname(__file__)
 @contextmanager
 def get_conn(host, port, user, password, database):
     # Run locally, host and port are those of the `pi-db` SSH tunnel from ~/.ssh/config (see conf/secrets.yaml)
-    with psycopg2.connect(host=host, port=port, user=user, password=password, database=database) as conn:
-        yield conn
+    conn = psycopg2.connect(host=host, port=port, user=user, password=password, database=database)
+    try:
+        # Commits, or rolls back on error, but does not close the connection
+        with conn:
+            yield conn
+    finally:
+        conn.close()
 
 
 class Database(object):
