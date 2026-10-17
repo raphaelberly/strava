@@ -92,7 +92,8 @@ with left:
 
 df_sport = df[df["Type"].isin(SPORTS)]
 df_sport['Année'] = df_sport['start_datetime_utc'].dt.year.astype(str)
-df_sport['Semaine'] = df_sport['start_datetime_utc'].dt.isocalendar().week
+# Weeks counted from 1 January: ISO weeks put the last days of December in week 1 and the first days of January in 53
+df_sport['Semaine'] = (df_sport['start_datetime_utc'].dt.dayofyear - 1) // 7 + 1
 
 df_sport_agg = df_sport.groupby(['Année', 'Semaine'])[metric].sum().reset_index(drop=False).sort_values('Semaine')
 df_sport_agg['Somme cumulée'] = (df_sport_agg.groupby('Année')[metric].cumsum() * 10).round() / 10
