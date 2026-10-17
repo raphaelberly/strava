@@ -22,12 +22,16 @@ max_gap: 60
 min_park_length: 30
 
 # Trail coverage by Strava activities (summary polylines, within about 5 m of the full tracks): a piece of trail is
-# covered by an activity when at least `min_overlap` of it lies within `tolerance` of its track and it runs along it
+# covered by an activity when at least `min_overlap` of it lies within `tolerance` of its track and it runs along it.
+# Along each trail, unrun gaps up to `max_gap` between two covered stretches are covered too, and so are unrun trails
+# up to `max_connector` with both ends on covered ones (longer ones can be shortcuts really not run).
 coverage:
   activity_types: [Run, TrailRun, Hike, Walk]
   tolerance: 15
   min_overlap: 0.5
   min_span: 0.7
+  max_gap: 60
+  max_connector: 30
 
 # Zones the network is built for, as polygons of (lon, lat) points
 zones:

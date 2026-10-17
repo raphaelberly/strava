@@ -74,4 +74,23 @@ def trail_coverage(db: Database, zone: str, conf: dict) -> gpd.GeoDataFrame:
     pieces = pieces.join(trails.drop(columns='geometry'), on='line').join(stats)
     pieces['activities'] = pieces.activities.fillna(0).astype(int)
     pieces['length_m'] = pieces.length
-    return pieces.drop(columns=['line', 'start', 'end']).to_crs(4326)
+
+    # Fill short unrun gaps between two run stretches of a trail, left by the corners the simplified tracks cut
+    done = pieces.activities > 0
+    pieces['run'] = ((done != done.shift()) | (pieces.line != pieces.line.shift())).cumsum()
+    runs = pieces.groupby('run').agg(line=('line', 'first'), done=('activities', 'any'), length=('length_m', 'sum'))
+    first, last = runs.line != runs.line.shift(), runs.line != runs.line.shift(-1)
+    gaps = runs.index[~runs.done & ~first & ~last & (runs.length <= coverage['max_gap'])]
+    stats = ['activities', 'first_datetime_utc', 'last_datetime_utc']
+    filled = pieces.run.isin(gaps)
+    pieces.loc[filled, stats] = pieces[stats].where(~filled).ffill()[filled]
+
+    # Same for a whole trail up to max_connector with both ends on run ones, like the connectors OSM draws at
+    # junctions: it takes the stats of the run piece at its start
+    run_pieces = pieces[pieces.activities > 0]
+    for run in runs.index[~runs.done & first & last & (runs.length <= coverage['max_connector'])]:
+        line = trails.geometry[runs.line[run]]
+        start, end = Point(line.coords[0]), Point(line.coords[-1])
+        if run_pieces.distance(start).min() < 1 and run_pieces.distance(end).min() < 1:
+            pieces.loc[pieces.run == run, stats] = run_pieces.loc[run_pieces.distance(start).idxmin(), stats].values
+    return pieces.drop(columns=['line', 'start', 'end', 'run']).to_crs(4326)

@@ -80,7 +80,7 @@ cd app && streamlit run 📈_Accueil.py
 
 `insert_trails.py` builds the trail network of a zone from OSM ways (fetched from Overpass, trying each instance in `conf/trails.yaml` in turn, three times over, since they often answer 504) and the Parc national des Calanques' marked trails (Métropole Aix-Marseille-Provence open data). The park data is the reference for marking (`balisage` colours, `etiq_num`), OSM for geometry: OSM ways are cut into 20 m pieces, each piece takes the marking of the park trail it runs along, and park trails missing from OSM are added with `source = 'park'`. Each run deletes and reinserts the zone's rows of `trails.trail` in one transaction (COPY), so `trail_index` is not stable across runs. Geometries are GeoJSON text in WGS84: the Pi's Postgres has no PostGIS, geometry work happens in Python with geopandas/shapely.
 
-`trail_coverage` computes on the fly which 20 m pieces of a zone's trails the foot activities went along, from the `summary_polyline` stored in `strava.activities` (within about 5 m of the full tracks; Strava crops the start and end inside privacy zones). Nothing is stored, so it stays right after a network rebuild.
+`trail_coverage` computes on the fly which 20 m pieces of a zone's trails the foot activities went along, from the `summary_polyline` stored in `strava.activities` (within about 5 m of the full tracks; Strava crops the start and end inside privacy zones). It then smooths along each trail: unrun gaps up to `max_gap` between two run stretches (corners the simplified tracks cut) and unrun trails up to `max_connector` with both ends on run ones (junction connectors) count as run. Nothing is stored, so it stays right after a network rebuild.
 
 ### Other
 
