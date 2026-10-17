@@ -38,6 +38,8 @@ activities_gen = tqdm(reversed(activities), total=len(activities)) if len(activi
 for activity in activities_gen:
     if 'running' in activity['activityType']['typeKey']:
         try:
+            # Fetch laps first: once the activity is inserted, later runs skip it and would never retry its laps
+            laps = garmin.get_activity_splits(activity['activityId'])['lapDTOs']
             # Insert activity
             db.insert(
                 'activity',
@@ -46,7 +48,6 @@ for activity in activities_gen:
             )
             i += 1
             # Insert laps
-            laps = garmin.get_activity_splits(activity['activityId'])['lapDTOs']
             for lap in laps:
                 db.insert(
                     'lap',

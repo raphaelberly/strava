@@ -56,7 +56,7 @@ cd app && streamlit run 📈_Accueil.py
 ### Ingestion behaviour
 
 - **Strava**: fetches pages of 200 activities after `last_activity_timestamp(offset=5)`, so the 5 most recent activities are re-fetched and re-upserted to pick up late edits. Dedup is the `activities_pkey` upsert. Special cases in `insert_activities.py`: `Run` with `sport_type == 'TrailRun'` is stored as type `TrailRun`; `VirtualRide` triggers a detail call and parses `ftp_base` from the description (`base ftp (de )?N w`); `AlpineSki`/`Snowboard` get elevation gain forced to 0.
-- **Garmin**: fetches from the date of the last stored activity to today, keeps only `running` types, inserts oldest first, and skips rows on `UniqueViolation`.
+- **Garmin**: fetches from the date of the last stored activity to today, keeps only `running` types, inserts oldest first, and skips rows on `UniqueViolation`. An activity's laps are fetched before it is inserted, since an inserted activity is skipped from then on.
 - Failures send a Pushover alert (`⚠️ Strava Error`, `⚠️ Garmin Error`) and then re-raise so cron sees the failure.
 
 ### Streamlit app
