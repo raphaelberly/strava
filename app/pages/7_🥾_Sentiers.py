@@ -12,6 +12,7 @@ from lib.trails import trail_coverage
 authenticate()
 
 CONF = yaml.safe_load(open('../conf/trails.yaml'))
+MAPBOX_TOKEN = yaml.safe_load(open('../conf/secrets.yaml'))['mapbox']['token']
 # Legend, colour and width of the map's lines, by (covered, marked)
 STYLES = {
     (True, True): ('Sentiers balisés parcourus', '#2b8a3e', 4),
@@ -73,10 +74,12 @@ fig.update_layout(
         'style': 'white-bg',
         'center': {'lon': center.x, 'lat': center.y},
         'zoom': 13,
+        # Mapbox Outdoors as raster tiles: plotly's maps are MapLibre, which cannot load Mapbox styles themselves
         'layers': [{
             'sourcetype': 'raster',
-            'source': ['https://tile.opentopomap.org/{z}/{x}/{y}.png'],
-            'sourceattribution': '© OpenTopoMap (CC-BY-SA), © OpenStreetMap',
+            'source': [f'https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/tiles/256/{{z}}/{{x}}/{{y}}@2x'
+                       f'?access_token={MAPBOX_TOKEN}'],
+            'sourceattribution': '© Mapbox, © OpenStreetMap',
             'below': 'traces',
         }],
     },

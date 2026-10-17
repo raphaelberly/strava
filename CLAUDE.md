@@ -40,7 +40,7 @@ cd app && streamlit run 📈_Accueil.py
 
 `conf/` holds YAML files with real credentials. Never print, cat or commit them.
 
-- `conf/secrets.yaml` (gitignored): `db` (kwargs for `Database`: `localhost:5433` locally, the `pi-db` tunnel's end, and `localhost:5432` on the Pi), `strava` (OAuth refresh-token credentials), `push` (Pushover `user_key`/`api_token`), `garmin` (`token_store` only: `garmin_login.py` prompts for the Garmin credentials so they are never stored).
+- `conf/secrets.yaml` (gitignored): `db` (kwargs for `Database`: `localhost:5433` locally, the `pi-db` tunnel's end, and `localhost:5432` on the Pi), `strava` (OAuth refresh-token credentials), `push` (Pushover `user_key`/`api_token`), `garmin` (`token_store` only: `garmin_login.py` prompts for the Garmin credentials so they are never stored), `mapbox` (`token`: a public token for the Sentiers page's basemap, sent to the browser in tile URLs).
 - `conf/conf.yaml`: `columns` maps each `strava.activities` column to a dotted path in the Strava API payload (e.g. `polyline: map.summary_polyline`). `insert_activities.py` walks these paths, so adding a Strava column means adding it here and in the table.
 - `conf/garmin.yaml`: `activity` and `lap` map DB columns to Garmin payload keys (flat, not dotted).
 - `conf/trails.yaml`: zones (polygons of `[lon, lat]` points) the trail network is built for, Overpass instances, the Parc national's marked-trails export URL and the matching thresholds.
@@ -67,7 +67,7 @@ cd app && streamlit run 📈_Accueil.py
 - `app/📈_Accueil.py` is the home page; `app/pages/` holds numbered, emoji-prefixed pages (Streamlit multipage convention). Cross-page buttons use `st.switch_page('pages/<filename>')`.
 - Every page calls `authenticate()` from `app/autenthicator.py` before querying anything; a new page must too, since Streamlit serves each page at its own URL. It writes form logins to `log/app_logins.log` (path relative to `app/`) with the client IP from the last `X-Forwarded-For` header, the one the Pi's haproxy adds. On the Pi, fail2ban's `sports-login` jail (`/etc/fail2ban/jail.local`) bans IPs from `Failed login from <ip>` lines, so changing that message breaks banning silently.
 - `app/utils/__init__.py` creates a module-level `db`. Pages read through the `fetch_*_df()` functions of `app/utils/loader.py`, cached for 10 minutes (`DATA_TTL`) and cleared by the home page's refresh button, then filter with pandas. Strava pages read `strava.activities` (without its polyline) or `activities_curated`; stride, volume and activity analysis pages read `garmin.lap_enriched`, from which `fetch_laps_df` drops laps under 20 seconds and adds paces.
-- The Sentiers page maps a zone's trails coloured by coverage, with the completion of all trails and of the park's marked ones. It runs `trail_coverage` (a few seconds) behind `st.cache_data(ttl=3600)`, cleared by the home page's refresh button.
+- The Sentiers page maps a zone's trails coloured by coverage over Mapbox Outdoors raster tiles (plotly 7 has no Mapbox traces; its MapLibre maps can't load Mapbox styles, and the IGN vector styles never finish loading there), with the completion of all trails and of the park's marked ones. It runs `trail_coverage` (a few seconds) behind `st.cache_data(ttl=3600)`, cleared by the home page's refresh button.
 - `app/utils/names.py` maps Strava types to French sport labels; "Renfo" is further filtered by activity name (`hiit`/`renfo`).
 
 ### Deployment (Raspberry Pi)
