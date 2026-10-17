@@ -1,3 +1,4 @@
+import plotly.express as px
 import streamlit as st
 
 from autenthicator import authenticate
@@ -6,9 +7,20 @@ from utils.loader import fetch_laps_df
 # Make sure the user is logged in
 authenticate()
 
+# Lap metrics that can be plotted, with their label
+METRICS = {
+    'speed_to_heartrate': 'Vitesse / FC',
+    'power_to_heartrate': 'Puissance / FC',
+    'stride_length': 'Longueur de foulée',
+    'average_speed': 'Vitesse moyenne',
+    'average_cadence': 'Cadence moyenne',
+    'average_heartrate': 'FC moyenne',
+    'vertical_oscillation': 'Oscillation verticale',
+    'vertical_ratio': 'Rapport vertical',
+    'ground_contact_balance': 'Équilibre du temps de contact au sol',
+    'ground_contact_time': 'Temps de contact au sol',
+}
 
-def normalize_text(text: str) -> str:
-    return ' '.join(text.split('_')).capitalize()
 
 def calculate_pace(speed_in_mps: float) -> float:
     return 1000 / speed_in_mps
@@ -35,38 +47,27 @@ activities = laps.sort_values('activity_date', ascending=False)[['activity_id', 
 # Some Garmin activities have no name, which pandas reads as NaN
 activities['activity_name'] = activities['activity_name'].fillna('Sans nom')
 
-activity_id = st.selectbox('Activity', options=activities.activity_id, format_func=lambda n: dict(zip(activities.activity_id, activities.activity_name))[n])
+names = dict(zip(activities.activity_id, activities.activity_name))
+activity_id = st.selectbox('Activité', options=activities.activity_id, format_func=names.get)
 
 df = laps[laps.activity_id == activity_id]
 
 left, center, _ = st.columns(3)
 
 with left:
-    y = st.selectbox('Y', options=[
-        'speed_to_heartrate',
-        'power_to_heartrate',
-        'stride_length',
-        'average_speed',
-        'average_cadence',
-        'average_heartrate',
-        'vertical_oscillation',
-        'vertical_ratio',
-        'ground_contact_balance',
-        'ground_contact_time',
-    ], format_func=normalize_text)
+    y = st.selectbox('Y', options=list(METRICS), format_func=METRICS.get)
 
-exclude_slow_laps = st.checkbox('Exclude slow laps', value=True)
+exclude_slow_laps = st.checkbox('Enlever les circuits lents', value=True)
 
 if exclude_slow_laps:
     df = df[df['average_pace'] < 6*60]
 
 # Create plotly figure with a scatterplot with power_to_hr as a function of lap_index, Add a trendline, and Do not show any legend
-import plotly.express as px
 fig = px.scatter(df, x='lap_index', y=y, trendline='ols')
 
 fig.update_traces(marker=dict(size=10))
 fig.update_layout(
-    xaxis_title='Lap index',
-    yaxis_title=y.capitalize(),
+    xaxis_title='Circuit',
+    yaxis_title=METRICS[y],
 )
 st.plotly_chart(fig)

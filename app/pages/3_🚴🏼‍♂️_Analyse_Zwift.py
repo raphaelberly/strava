@@ -11,7 +11,7 @@ from utils.loader import fetch_zwift_activities_df
 authenticate()
 
 
-st.title('🚴🏼‍♂️ Zwift analysis')
+st.title('🚴🏼‍♂️ Analyse Zwift')
 
 df = fetch_zwift_activities_df()
 
@@ -27,11 +27,11 @@ df = df.loc[~df['exercise_name'].isnull()]
 
 df['exercise_count'] = df.groupby('exercise_name').exercise_name.transform('count')
 
-filter_out_single = st.checkbox('Show only exercises done 2+ times', value=True)
+filter_out_single = st.checkbox('Uniquement les exercices faits au moins 2 fois', value=True)
 df = df[df['exercise_count'] > int(filter_out_single)]
 
 exercises_sorted = df.sort_values('exercise_count', ascending=False).exercise_name.unique()
-exercise = st.selectbox('Pick exercise', options=exercises_sorted)
+exercise = st.selectbox('Exercice', options=exercises_sorted)
 
 df = df.loc[df['exercise_name'] == exercise]
 
