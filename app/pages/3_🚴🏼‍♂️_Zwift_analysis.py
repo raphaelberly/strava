@@ -5,7 +5,7 @@ import plotly.express as px
 import streamlit as st
 
 from autenthicator import authenticate
-from utils import db
+from utils.loader import fetch_zwift_activities_df
 
 # Make sure the user is logged in
 authenticate()
@@ -13,7 +13,7 @@ authenticate()
 
 st.title('🚴🏼‍♂️ Zwift analysis')
 
-df = db.run_query(f"SELECT * FROM strava.activities_curated WHERE ftp_base_w IS NOT NULL")
+df = fetch_zwift_activities_df()
 
 
 def parse_name(name: str) -> str:

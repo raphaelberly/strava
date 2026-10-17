@@ -2,7 +2,7 @@ import pandas as pd
 import streamlit as st
 
 from autenthicator import authenticate
-from utils import db
+from utils.loader import fetch_activities_df
 
 # First streamlit command
 st.set_page_config(
@@ -45,7 +45,7 @@ def switch_df_size():
         st.session_state.nb_activities = 30
 
 
-df = db.run_query(f"SELECT * FROM strava.activities")
+df = fetch_activities_df()
 tmp = df[(df.type.str.lower().str.contains('run') | df.type.str.lower().str.contains('ride'))] \
     .sort_values('start_datetime_utc', ascending=False)
 

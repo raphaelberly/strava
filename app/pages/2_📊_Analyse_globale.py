@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from autenthicator import authenticate
-from utils import db
+from utils.loader import fetch_activities_df
 from utils.names import NAMES
 
 # Make sure the user is logged in
@@ -14,7 +14,8 @@ authenticate()
 
 st.title('Analyse globale')
 
-df = db.run_query(f"SELECT * FROM strava.activities WHERE date_part('year', start_datetime_utc) >= 2021")
+df = fetch_activities_df()
+df = df[df.start_datetime_utc.dt.year >= 2021]
 df['moving_time'] = (df['moving_time'] / 3600).round(2)
 df['distance'] = (df['distance'] / 1000).round(2)
 df['nb_activities'] = 1

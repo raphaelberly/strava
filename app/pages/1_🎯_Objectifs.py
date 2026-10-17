@@ -4,7 +4,7 @@ import streamlit as st
 from yaml import safe_load
 
 from autenthicator import authenticate
-from utils import db
+from utils.loader import fetch_activities_df
 
 # Make sure the user is logged in
 authenticate()
@@ -14,7 +14,7 @@ MONTH = datetime.date.today().month
 DOY = datetime.datetime.now().timetuple().tm_yday
 OBJECTIVES = safe_load(open('conf/objectives.yaml'))
 
-df = db.run_query(f"SELECT * FROM strava.activities")
+df = fetch_activities_df()
 df_year = df[df.start_datetime_utc.dt.year == YEAR]
 df_month = df_year[df_year.start_datetime_utc.dt.month == MONTH]
 

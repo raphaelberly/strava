@@ -4,7 +4,7 @@ import streamlit as st
 import plotly.express as px
 
 from autenthicator import authenticate
-from utils import db
+from utils.loader import fetch_activities_df
 from utils.names import NAMES
 
 # Make sure the user is logged in
@@ -22,7 +22,8 @@ def _delta(current, previous):
 
 st.title('Analyse annuelle')
 
-df = db.run_query(f"SELECT * FROM strava.activities WHERE date_part('year', start_datetime_utc) >= {FIRST_YEAR - 1}")
+df = fetch_activities_df()
+df = df[df.start_datetime_utc.dt.year >= FIRST_YEAR - 1]
 df['moving_time'] = (df['moving_time'] / 3600).round(2)
 df['distance'] = (df['distance'] / 1000).round(2)
 df['nb_activities'] = 1

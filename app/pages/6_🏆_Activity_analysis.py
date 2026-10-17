@@ -1,7 +1,7 @@
 import streamlit as st
 
 from autenthicator import authenticate
-from utils import db
+from utils.loader import fetch_laps_df
 
 # Make sure the user is logged in
 authenticate()
@@ -23,7 +23,7 @@ def format_duration(seconds):
     seconds = seconds % 60
     return f'{f"{int(minutes):02d}min " if int(minutes) > 0 else ""}{int(seconds):02d}s'
 
-laps = db.run_query("SELECT * FROM garmin.lap_enriched WHERE activity_type IN ('running', 'trail_running')")
+laps = fetch_laps_df()
 laps.rename(columns={'activity_start_datetime_utc': 'activity_date'}, inplace=True)
 laps = laps[laps['moving_time'] >= 20]
 laps['max_pace'] = laps['max_speed'].apply(calculate_pace)
