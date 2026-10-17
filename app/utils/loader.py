@@ -22,4 +22,11 @@ def fetch_zwift_activities_df():
 
 @st.cache_data(ttl=DATA_TTL)
 def fetch_laps_df():
-    return db.run_query("SELECT * FROM garmin.lap_enriched WHERE activity_type IN ('running', 'trail_running');")
+    laps = db.run_query("SELECT * FROM garmin.lap_enriched WHERE activity_type IN ('running', 'trail_running');")
+    laps = laps.rename(columns={'activity_start_datetime_utc': 'activity_date'})
+    # Laps shorter than 20 seconds are left out
+    laps = laps[laps['moving_time'] >= 20]
+    # Paces in seconds per km
+    laps['max_pace'] = 1000 / laps['max_speed']
+    laps['average_pace'] = 1000 / laps['average_speed']
+    return laps

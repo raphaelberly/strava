@@ -12,9 +12,6 @@ authenticate()
 def normalize_text(text: str) -> str:
     return ' '.join(text.split('_')).capitalize()
 
-def calculate_pace(speed_in_mps: float) -> float:
-    return 1000 / speed_in_mps
-
 def format_pace(seconds_per_km):
     minutes = seconds_per_km // 60
     seconds = seconds_per_km % 60
@@ -26,10 +23,6 @@ def format_duration(seconds):
     return f'{f"{int(minutes):02d}min " if int(minutes) > 0 else ""}{int(seconds):02d}s'
 
 laps = fetch_laps_df()
-laps.rename(columns={'activity_start_datetime_utc': 'activity_date'}, inplace=True)
-laps = laps[laps['moving_time'] >= 20]
-laps['max_pace'] = laps['max_speed'].apply(calculate_pace)
-laps['average_pace'] = laps['average_speed'].apply(calculate_pace)
 
 st.title('Analyse de foulée 🏃🏼‍♂️')
 
