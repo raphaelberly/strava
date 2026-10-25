@@ -8,9 +8,22 @@ from utils.loader import fetch_laps_df
 # Make sure the user is logged in
 authenticate()
 
+# Labels of the lap columns that can be plotted
+LABELS = {
+    '': 'Aucune',
+    'activity_date': 'Date',
+    'average_pace': 'Allure moyenne',
+    'max_pace': 'Allure max',
+    'average_cadence': 'Cadence moyenne',
+    'average_heartrate': 'FC moyenne',
+    'max_heartrate': 'FC max',
+    'stride_length': 'Longueur de foulée',
+    'vertical_oscillation': 'Oscillation verticale',
+    'vertical_ratio': 'Rapport vertical',
+    'ground_contact_balance': 'Équilibre du temps de contact au sol',
+    'ground_contact_time': 'Temps de contact au sol',
+}
 
-def normalize_text(text: str) -> str:
-    return ' '.join(text.split('_')).capitalize()
 
 def format_pace(seconds_per_km):
     minutes = seconds_per_km // 60
@@ -57,7 +70,7 @@ with left:
         'activity_date',
         'max_pace',
         'max_heartrate',
-    ], format_func=normalize_text)
+    ], format_func=LABELS.get)
 with center:
     y = st.selectbox('Y', options=[
         'stride_length',
@@ -66,14 +79,14 @@ with center:
         'vertical_ratio',
         'ground_contact_balance',
         'ground_contact_time',
-    ], format_func=normalize_text)
+    ], format_func=LABELS.get)
 with right:
-    c = st.selectbox('Color', options=[
+    c = st.selectbox('Couleur', options=[
         '',
         'average_pace',
         'average_cadence',
         'average_heartrate',
-    ], format_func=normalize_text)
+    ], format_func=LABELS.get)
 
 # Format the ticks on the x-axis
 trace_marker = {'size': 10, 'opacity': 0.7}
@@ -87,14 +100,14 @@ trace = go.Scatter(
     y=laps[y].round(2),
     mode='markers',
     marker=trace_marker,
-    hovertemplate=f'{normalize_text(y)} : <b>%{{y}}</b>'
+    hovertemplate=f'{LABELS[y]} : <b>%{{y}}</b>'
                   f'<br>Date : %{{customdata[0]}}'
                   f'<br>Nom : %{{customdata[1]}}'
                   f'<br>Circuit : %{{customdata[2]}}'
                   f'<br>Allure : %{{customdata[3]}}'
                   f'<br>Durée : %{{customdata[4]}}',
     customdata=list(zip(
-        laps['activity_date'].dt.strftime('%b %d, %Y').tolist(),
+        laps['activity_date'].dt.strftime('%d/%m/%Y').tolist(),
         laps['activity_name'].tolist(),
         laps['lap_index'].tolist(),
         laps['average_pace'].apply(format_pace).tolist(),
