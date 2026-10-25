@@ -46,6 +46,9 @@ st.title('🥾 Sentiers')
 zones = list(CONF['zones'])
 zone = st.selectbox('Massif', zones, format_func=str.capitalize) if len(zones) > 1 else zones[0]
 pieces = load_coverage(zone)
+if pieces is None:
+    st.info("Le réseau de sentiers de ce massif n'est pas encore construit")
+    st.stop()
 covered = pieces.activities > 0
 marked = pieces.balisage.notna()
 
@@ -54,6 +57,9 @@ for column, title, subset in zip(st.columns(2), ['Tous les sentiers', 'Sentiers 
     with column:
         done_km = subset.length_m[subset.activities > 0].sum() / 1000
         total_km = subset.length_m.sum() / 1000
+        # A zone outside the park has no marked trails
+        if total_km == 0:
+            continue
         st.metric(title, f'{done_km / total_km:.0%}')
         st.progress(done_km / total_km, text=f'{done_km:.1f} km parcourus sur {total_km:.1f} km')
 

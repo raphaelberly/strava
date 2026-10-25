@@ -1,3 +1,5 @@
+from typing import Optional
+
 import geopandas as gpd
 import pandas as pd
 import polyline
@@ -40,7 +42,7 @@ def match_pieces(pieces: gpd.GeoDataFrame, lines: gpd.GeoSeries, tolerance: floa
 
 
 # Pieces of a zone's trails, in WGS84, with the number of activities that went along each and their first and last date
-def trail_coverage(db: Database, zone: str, conf: dict) -> gpd.GeoDataFrame:
+def trail_coverage(db: Database, zone: str, conf: dict) -> Optional[gpd.GeoDataFrame]:
     polygon = Polygon(conf['zones'][zone])
     crs = gpd.GeoSeries([polygon], crs=4326).estimate_utm_crs()
 
@@ -50,6 +52,9 @@ def trail_coverage(db: Database, zone: str, conf: dict) -> gpd.GeoDataFrame:
         FROM trails.trail
         WHERE zone = '{zone}';
     """)
+    # Zone not built yet by insert_trails.py
+    if trails.empty:
+        return None
     trails = gpd.GeoDataFrame(trails.drop(columns='geometry'), crs=4326,
                               geometry=shapely.from_geojson(trails.geometry.values)).to_crs(crs)
     pieces = cut_pieces(trails.geometry, conf['piece_length'])
