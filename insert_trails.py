@@ -87,7 +87,7 @@ if __name__ == '__main__':
 
     # Mark each piece of OSM way like the park trail it runs along most
     pieces = cut_pieces(osm.geometry, conf['piece_length'])
-    best = match_pieces(pieces, park.geometry, conf['tolerance'], 0.5, conf['min_span']) \
+    best = match_pieces(pieces, park.geometry, conf['tolerance'], conf['min_overlap'], conf['min_span']) \
         .sort_values('overlap').groupby(level=0).tail(1)
     pieces[['balisage', 'etiq_num']] = park.loc[best.line, ['balisage', 'etiq_num']].set_index(best.index) \
         .reindex(pieces.index).fillna('')

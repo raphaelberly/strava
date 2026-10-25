@@ -10,13 +10,14 @@ highway: [path, footway, track, steps, bridleway, cycleway]
 # Marked trails of the Parc national des Calanques (balisage, etiq_num), on the Métropole's open data portal
 park_url: https://data.ampmetropole.fr/api/explore/v2.1/catalog/datasets/fr-sentiers-balises-sur-le-parc-national-des-calanques/exports/geojson
 
-# Matching, in metres (see lib/trails.py). An OSM piece is marked like a park trail when at least half of it lies
-# within `tolerance` of it, and when it runs along it: its projection on the park trail is at least `min_span` of its
-# length (0.7 is about 45°).
+# Matching, in metres (see lib/trails.py). An OSM piece is marked like a park trail when at least `min_overlap` of it
+# lies within `tolerance` of it, and when it runs along it: its projection on the park trail is at least `min_span` of
+# its length (0.7 is about 45°).
 # Unmarked gaps up to `max_gap` between two pieces with the same marking get it too.
 # Park trails further than `tolerance` from any OSM way are added as is when longer than `min_park_length`.
 piece_length: 20
 tolerance: 12
+min_overlap: 0.5
 min_span: 0.7
 max_gap: 60
 min_park_length: 30
