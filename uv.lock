@@ -815,10 +815,12 @@ dependencies = [
     { name = "pushover" },
     { name = "pyyaml" },
     { name = "requests" },
+    { name = "starlette" },
     { name = "statsmodels" },
     { name = "streamlit" },
     { name = "streamlit-authenticator" },
     { name = "tqdm" },
+    { name = "uvicorn" },
 ]
 
 [package.metadata]
@@ -833,10 +835,12 @@ requires-dist = [
     { name = "pushover", git = "https://github.com/Wyattjoh/pushover" },
     { name = "pyyaml", specifier = ">=6.0.3" },
     { name = "requests", specifier = ">=2.34.2" },
+    { name = "starlette", specifier = ">=1.7.0" },
     { name = "statsmodels", specifier = ">=0.15.0" },
     { name = "streamlit", specifier = ">=1.65.0" },
     { name = "streamlit-authenticator", specifier = ">=0.4.2" },
     { name = "tqdm", specifier = ">=4.70.1" },
+    { name = "uvicorn", specifier = ">=0.54.0" },
 ]
 
 [[package]]

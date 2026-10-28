@@ -23,9 +23,12 @@ dependencies = [
     "requests>=2.34.2",
     # Used by plotly express for the OLS trendline on the Activity analysis page
     "statsmodels>=0.15.0",
+    # Serve strava_webhook.py (both also come with streamlit)
+    "starlette>=1.7.0",
     "streamlit>=1.65.0",
     "streamlit-authenticator>=0.4.2",
     "tqdm>=4.70.1",
+    "uvicorn>=0.54.0",
 ]
 
 [tool.uv]

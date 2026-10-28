@@ -1,11 +1,8 @@
-import re
-from datetime import datetime, UTC
-
 import yaml
 
 from lib.database import Database
 from lib.push import Push
-from lib.strava import Strava
+from lib.strava import Strava, activity_row
 
 # Read configuration files
 secrets = yaml.safe_load(open('conf/secrets.yaml'))
@@ -48,25 +45,10 @@ try:
     # Insert activities in database one by one
     i = 0
     for raw_activity in raw_activities:
-        activity = {'update_datetime_utc': datetime.now(UTC)}
-        # For virtual rides, fetch description & create new "ftp_base" field
-        if raw_activity['type'] == 'Run':
-            if raw_activity['sport_type'] == 'TrailRun':
-                raw_activity['type'] = 'TrailRun'
-        elif raw_activity['type'] == 'VirtualRide':
+        # For virtual rides, fetch the detailed activity to read the FTP base from its description
+        if raw_activity['type'] == 'VirtualRide':
             raw_activity = strava.activity(raw_activity['id'])
-            ftp_search = re.search(r'base ftp (de )?(\d+) ?w', raw_activity['description'] or '', re.IGNORECASE)
-            if ftp_search:
-                raw_activity['ftp_base'] = ftp_search.group(2)
-        if raw_activity['type'] in ['AlpineSki', 'Snowboard']:
-            raw_activity['total_elevation_gain'] = 0
-        for column_name, column_path in conf['columns'].items():
-            # Dive into nested dictionary following the provided path
-            value = raw_activity
-            for key in column_path.split('.'):
-                value = value.get(key, {})
-            if value != {} and value != '':
-                activity[column_name] = value
+        activity = activity_row(raw_activity, conf['columns'])
         # Insert activity
         db.upsert(table_name='activities', constraint_name='activities_pkey', **activity)
         i += 1

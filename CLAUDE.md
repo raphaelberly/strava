@@ -26,6 +26,8 @@ python insert_garmin_activities.py   # Garmin running activities + laps -> garmi
 python check_activities.py           # Push alert for likely duplicate Strava activities in the last month
 python garmin_login.py               # When Garmin tokens expire: prompts for email/password/MFA, saves garmin_tokens.json in garmin.token_store
 python insert_trails.py -z marseilleveyre  # Rebuild a zone's trail network in trails.trail (manual, --dry-run to only log it)
+python strava_webhook.py            # Strava webhook events -> strava.activities, on 127.0.0.1:8092
+python strava_subscription.py       # Show the app's webhook subscription (-c URL to create it, -d to delete it)
 ```
 
 The Streamlit app must be run from inside `app/`, because `app/utils/__init__.py` opens `../conf/secrets.yaml` and pages import `from utils import ...`:
@@ -40,8 +42,8 @@ cd app && streamlit run 📈_Accueil.py
 
 `conf/` holds YAML files with real credentials. Never print, cat or commit them.
 
-- `conf/secrets.yaml` (gitignored): `db` (kwargs for `Database`: `localhost:5433` locally, the `pi-db` tunnel's end, and `localhost:5432` on the Pi), `strava` (OAuth refresh-token credentials), `push` (Pushover `user_key`/`api_token`), `garmin` (`token_store` only: `garmin_login.py` prompts for the Garmin credentials so they are never stored), `mapbox` (`token`: a public token for the Sentiers page's basemap, sent to the browser in tile URLs).
-- `conf/conf.yaml`: `columns` maps each `strava.activities` column to a dotted path in the Strava API payload (e.g. `polyline: map.summary_polyline`). `insert_activities.py` walks these paths, so adding a Strava column means adding it here and in the table.
+- `conf/secrets.yaml` (gitignored): `db` (kwargs for `Database`: `localhost:5433` locally, the `pi-db` tunnel's end, and `localhost:5432` on the Pi), `strava` (OAuth refresh-token credentials, and the `verify_token` Strava echoes when validating the webhook subscription), `push` (Pushover `user_key`/`api_token`), `garmin` (`token_store` only: `garmin_login.py` prompts for the Garmin credentials so they are never stored), `mapbox` (`token`: a public token for the Sentiers page's basemap, sent to the browser in tile URLs).
+- `conf/conf.yaml`: `columns` maps each `strava.activities` column to a dotted path in the Strava API payload (e.g. `polyline: map.summary_polyline`). `insert_activities.py` and `strava_webhook.py` walk these paths (`activity_row` in `lib/strava.py`), so adding a Strava column means adding it here and in the table. `hidden` (`hide_from_home`, the activity is muted) is only in the detailed activity, so the cron's list of activities never sets it and leaves the stored value as it is.
 - `conf/garmin.yaml`: `activity` and `lap` map DB columns to Garmin payload keys (flat, not dotted).
 - `conf/trails.yaml`: zones (polygons of `[lon, lat]` points) the trail network is built for, Overpass instances, the Parc national's marked-trails export URL and the matching thresholds.
 - `app/conf/accounts.yaml` (gitignored): `streamlit_authenticator` credentials (bcrypt-hashed passwords) and cookie settings.
@@ -50,8 +52,8 @@ cd app && streamlit run 📈_Accueil.py
 
 ## Architecture
 
-- `lib/database.py`: `get_conn` context manager (a plain psycopg2 connection: the SSH tunnel used locally is OpenSSH's, configured outside the code) and a flat `Database` class with `run_query` (returns a DataFrame), `insert`, `upsert(constraint_name=...)` and `last_activity_timestamp`. Queries are built as f-string / `.format()` SQL with `'` escaped and `'None'` replaced by `NULL`; parameterized queries are deliberately not used.
-- `lib/strava.py`: thin wrapper over the Strava REST API, one method per endpoint returning raw JSON and raising on HTTP errors.
+- `lib/database.py`: `get_conn` context manager (a plain psycopg2 connection: the SSH tunnel used locally is OpenSSH's, configured outside the code) and a flat `Database` class with `run_query` (returns a DataFrame), `insert`, `delete`, `upsert(constraint_name=...)` and `last_activity_timestamp`. Queries are built as f-string / `.format()` SQL with `'` escaped and `'None'` replaced by `NULL`; parameterized queries are deliberately not used.
+- `lib/strava.py`: thin wrapper over the Strava REST API, one method per endpoint returning raw JSON and raising on HTTP errors, and `activity_row`, which turns an activity payload into a `strava.activities` row.
 - `lib/trails.py`: geometry helpers shared by the trail network build and its coverage: `cut_pieces`, `match_pieces` (a piece matches a line it runs along, not one crossing or branching off it) and `trail_coverage`.
 - `lib/resources/*.sql`: schema DDL for `strava`, `garmin` and `trails` schemas, including the views the app reads (`strava.activities_curated`, `garmin.activity_enriched`, `garmin.lap_enriched`). Apply changes manually; there is no migration tool.
 - The `Database` schema is set per instance: Strava code uses `secrets['db']['schema']`, the Garmin script overrides it to `garmin`.
@@ -59,6 +61,7 @@ cd app && streamlit run 📈_Accueil.py
 ### Ingestion behaviour
 
 - **Strava**: fetches pages of 200 activities after `last_activity_timestamp(offset=5)`, so the 5 most recent activities are re-fetched and re-upserted to pick up late edits. Dedup is the `activities_pkey` upsert. Special cases in `insert_activities.py`: `Run` with `sport_type == 'TrailRun'` is stored as type `TrailRun`; `VirtualRide` triggers a detail call and parses `ftp_base` from the description (`base ftp (de )?N w`); `AlpineSki`/`Snowboard` get elevation gain forced to 0.
+- **Strava webhook**, running alongside the now daily cron until it replaces it: `strava_webhook.py` (Starlette under uvicorn) answers Strava within the required 2 seconds and processes the event afterwards. Events are not signed, so they are only hints: a create or update event re-reads the detailed activity from Strava and upserts the whole row (skipped if it belongs to another athlete), and a delete event deletes the row only once Strava answers 404 for the activity. Strava sends update events only for title, type and visibility changes, and retries an event 3 times at most. Processing failures send `⚠️ Strava Error`.
 - **Garmin**: fetches from the date of the last stored activity to today, keeps only `running` types, inserts oldest first, and skips rows on `UniqueViolation`. An activity's laps are fetched before it is inserted, since an inserted activity is skipped from then on.
 - Failures send a Pushover alert (`⚠️ Strava Error`, `⚠️ Garmin Error`) and then re-raise so cron sees the failure.
 
@@ -73,8 +76,9 @@ cd app && streamlit run 📈_Accueil.py
 ### Deployment (Raspberry Pi)
 
 - The repo is cloned in `/home/pi/strava` and runs from its `.venv`, built with `uv sync --frozen`, for both cron and the app. A pulled change to `uv.lock` is not installed until `uv sync --frozen` runs on the Pi.
-- Cron runs `insert_activities.py`, `check_activities.py` and `insert_garmin_activities.py` hourly from 8:00 to 23:00 with `.venv/bin/python`, logging to `log/<script>.log`.
+- Cron runs `check_activities.py` and `insert_garmin_activities.py` hourly from 8:00 to 23:00, and `insert_activities.py` daily at 23:00 as a fallback for missed webhook events, with `.venv/bin/python`, logging to `log/<script>.log`.
 - Supervisor's `sports` program serves the app with `.venv/bin/streamlit` on `127.0.0.1:8091`; haproxy exposes it as `sports.rberly.ovh`, with per-IP rate limits shared with the other apps.
+- Supervisor's `strava-webhook` program runs `strava_webhook.py` on `127.0.0.1:8092`; haproxy routes `sports.rberly.ovh/strava/webhook` to it, path unchanged. The subscription (one per Strava app) points to `https://sports.rberly.ovh/strava/webhook`.
 
 ### Trail network
 

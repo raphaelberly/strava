@@ -62,6 +62,15 @@ class Database(object):
         with get_conn(**self._credentials) as conn:
             self._execute(query, conn)
 
+    def delete(self, table_name: str, **kwargs) -> None:
+        query = "DELETE FROM {schema}.{table} WHERE {conditions};".format(
+            schema=self.schema,
+            table=table_name,
+            conditions=' AND '.join("{k}='{v}'".format(k=k, v=str(v).replace("'", "''")) for k, v in kwargs.items())
+        )
+        with get_conn(**self._credentials) as conn:
+            self._execute(query, conn)
+
     def upsert(self, table_name: str, constraint_name: str, schema=None, **kwargs):
         query = "INSERT INTO {schema}.{table} ({columns}) VALUES ('{values}') " \
                 "ON CONFLICT ON CONSTRAINT {constraint} DO UPDATE SET {updates};" \
