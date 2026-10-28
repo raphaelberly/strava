@@ -7,7 +7,7 @@
 automations:
   - type: hide
     trigger:
-      type: ^workout
+      type: ^(workout|weight)
       name: (hiit|renfo|muscu)
   - type: add_counter
     trigger:
