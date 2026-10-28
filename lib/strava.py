@@ -30,6 +30,18 @@ class Strava(object):
         res.raise_for_status()
         self._access_token = res.json()['access_token']
 
+    # Exchange the code of an authorization (see strava_login.py) for the athlete's tokens
+    def authorize(self, code):
+        payload = {
+            'client_id': self._credentials['client_id'],
+            'client_secret': self._credentials['client_secret'],
+            'code': code,
+            'grant_type': 'authorization_code',
+        }
+        res = requests.post(self.auth_url, data=payload, timeout=self.timeout)
+        res.raise_for_status()
+        return res.json()
+
     def athlete(self):
         header = {'Authorization': f'Bearer {self._access_token}'}
         res = requests.get(self.athlete_url, headers=header, timeout=self.timeout)
@@ -50,6 +62,14 @@ class Strava(object):
     def activity(self, activity_id):
         header = {'Authorization': f'Bearer {self._access_token}'}
         res = requests.get(self.activity_url.format(activity_id=activity_id), headers=header, timeout=self.timeout)
+        res.raise_for_status()
+        return res.json()
+
+    # Needs the activity:write scope
+    def update_activity(self, activity_id, **fields):
+        header = {'Authorization': f'Bearer {self._access_token}'}
+        res = requests.put(self.activity_url.format(activity_id=activity_id), headers=header, json=fields,
+                           timeout=self.timeout)
         res.raise_for_status()
         return res.json()
 

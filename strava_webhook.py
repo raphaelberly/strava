@@ -1,5 +1,6 @@
 import argparse
 import logging
+import re
 
 import uvicorn
 import yaml
@@ -38,6 +39,40 @@ async def receive(request):
     return Response(background=BackgroundTask(process_event, event))
 
 
+# Apply the automations of conf/automations.yaml, each PUT returning the updated activity
+def apply_automations(raw_activity):
+    for automation in automations['automations']:
+        trigger = automation['trigger']
+        name_match = re.search(trigger['name'], raw_activity['name'], re.IGNORECASE)
+        if not name_match or not re.search(trigger['type'], raw_activity['type'], re.IGNORECASE):
+            continue
+        if automation['type'] == 'hide':
+            if raw_activity['hide_from_home']:
+                continue
+            raw_activity = strava.update_activity(raw_activity['id'], hide_from_home=True)
+            LOGGER.info(f'Hid activity {raw_activity["id"]}')
+        elif automation['type'] == 'add_counter':
+            # Renaming sends an update event of its own: a counted name must not match again
+            if re.search(r' #\d', raw_activity['name']):
+                continue
+            base, rest = name_match.group(0), raw_activity['name'][name_match.end():]
+            names = db.run_query(f"""
+                SELECT name FROM {db.schema}.activities WHERE name ILIKE '{base.replace("'", "''")} #%';
+            """).name.tolist()
+            # Sub-numbers count as their number: "#40.1" is 40
+            counter = 0
+            for stored_name in names:
+                counter_match = re.match(rf'{re.escape(base)} #(\d+)', stored_name, re.IGNORECASE)
+                if counter_match:
+                    counter = max(counter, int(counter_match.group(1)))
+            name = f'{base} #{counter + 1}{rest}'
+            raw_activity = strava.update_activity(raw_activity['id'], name=name)
+            LOGGER.info(f'Renamed activity {raw_activity["id"]} to {name}')
+        else:
+            raise NotImplementedError(f'Unknown automation type {automation["type"]}: use hide or add_counter')
+    return raw_activity
+
+
 # Strava signs nothing, so events are only hints: the activity is always read back from Strava
 def process_event(event):
     if event.get('object_type') != 'activity':
@@ -62,6 +97,7 @@ def process_event(event):
             if raw_activity['athlete']['id'] != athlete_id:
                 LOGGER.warning(f'Activity {activity_id} belongs to athlete {raw_activity["athlete"]["id"]}: skipped')
                 return
+            raw_activity = apply_automations(raw_activity)
             activity = activity_row(raw_activity, conf['columns'])
             db.upsert(table_name='activities', constraint_name='activities_pkey', **activity)
             LOGGER.info(f'Upserted activity {activity_id} ({event["aspect_type"]})')
@@ -84,6 +120,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(add_help=True)
     parser.add_argument('--secrets', '-s', type=str, help='Path to YAML file containing secrets')
     parser.add_argument('--conf', '-c', type=str, help='Path to YAML file containing the column mapping')
+    parser.add_argument('--automations', '-a', type=str, help='Path to YAML file containing the automations')
     parser.add_argument('--port', '-p', type=int, default=8092, help='Port to listen to, on localhost')
 
     # Parse arguments
@@ -92,6 +129,7 @@ if __name__ == '__main__':
     # Load configuration files, read by the handlers above
     secrets = yaml.safe_load(open(args.secrets or 'conf/secrets.yaml'))
     conf = yaml.safe_load(open(args.conf or 'conf/conf.yaml'))
+    automations = yaml.safe_load(open(args.automations or 'conf/automations.yaml'))
 
     # Configure connectors
     push = Push(**secrets['push'])
