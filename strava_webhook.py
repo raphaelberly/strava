@@ -53,11 +53,12 @@ def apply_automations(raw_activity):
             LOGGER.info(f'Hid activity {raw_activity["id"]}')
         elif automation['type'] == 'add_counter':
             # Renaming sends an update event of its own: a counted name must not match again
-            if re.search(r' #\d', raw_activity['name']):
+            if re.search(r'#\d', raw_activity['name']):
                 continue
             base, rest = name_match.group(0), raw_activity['name'][name_match.end():]
             names = db.run_query(f"""
-                SELECT name FROM {db.schema}.activities WHERE name ILIKE '{base.replace("'", "''")} #%';
+                SELECT name FROM {db.schema}.activities
+                WHERE name ILIKE '{base.replace("'", "''")} #%' AND id != {raw_activity['id']};
             """).name.tolist()
             # Sub-numbers count as their number: "#40.1" is 40
             counter = 0

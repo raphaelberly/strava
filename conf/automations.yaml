@@ -2,7 +2,7 @@
 # and `name` regexes are both found (case-insensitive) in the Strava type (Run, Workout...) and name of the activity.
 #   hide:        mute the activity (hide_from_home), unless it already is
 #   add_counter: insert " #N" right after the part of the name that `name` matched, N being the highest number found
-#                after that same text in the stored activities, plus one. Names that already have a " #<digit>" are left
+#                after that same text in the stored activities, plus one. Names that already have a "#<digit>" are left
 #                as they are, which also stops the rename's own update event from counting the activity again.
 automations:
   - type: hide
