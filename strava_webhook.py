@@ -77,6 +77,10 @@ def apply_automations(raw_activity):
 def process_event(event):
     if event.get('object_type') != 'activity':
         return
+    # The Strava app is shared with PaceUp, whose users' events come to this subscription too
+    if event.get('owner_id') != athlete_id:
+        LOGGER.info(f'Event of athlete {event.get("owner_id")}: skipped')
+        return
     activity_id = int(event['object_id'])
     try:
         # Logging in on every event saves tracking the 6-hour expiry of the access token
