@@ -19,5 +19,3 @@ columns:
   relative_effort:        suffer_score
   ftp_base:               ftp_base
   polyline:               map.summary_polyline
-  # Only in the detailed activity: the cron's list of activities leaves the stored value as it is
-  hidden:                 hide_from_home

@@ -21,7 +21,6 @@ CREATE TABLE strava.activities (
   relative_effort       FLOAT,
   ftp_base              INT,
   polyline              VARCHAR(16384),
-  hidden                BOOLEAN,
   update_datetime_utc   TIMESTAMP       NOT NULL    DEFAULT (now() AT TIME ZONE 'utc'),
   CONSTRAINT "activities_pkey"  PRIMARY KEY (id)
 );
